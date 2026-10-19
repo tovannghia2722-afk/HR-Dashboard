@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Realtime BI Dashboard - Supabase</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Supabase JS Client CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <style>
+    @keyframes pulse-green {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .animate-pulse-green {
+      animation: pulse-green 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen font-sans flex flex-col">
+
+  <!-- Header / Navigation -->
+  <header class="bg-slate-800 border-b border-slate-700 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+    <div class="flex items-center space-x-3">
+      <div class="p-2 bg-indigo-600 rounded-lg text-white">
+        <i class="fa-solid fa-chart-line text-xl"></i>
+      </div>
+      <div>
+        <h1 class="text-xl font-bold tracking-wide">HR & Sales Realtime Dashboard</h1>
+        <p class="text-xs text-slate-400 flex items-center gap-2">
+          <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse-green"></span>
+          Connected to Supabase Realtime Engine
+        </p>
+      </div>
+    </div>
+
+    <!-- Simulation Trigger Button -->
+    <div class="flex items-center space-x-3">
+      <button id="simOrderBtn" onclick="simulateNewOrder()" class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-medium px-4 py-2 rounded-lg text-sm transition-all shadow-lg shadow-emerald-900/30">
+        <i class="fa-solid fa-cart-plus"></i>
+        <span>Đặt Đơn Hàng Tự Động (Simulate)</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content Layout -->
+  <main class="flex-1 p-6 max-w-7xl w-full mx-auto space-y-6">
+
+    <!-- KPI Metric Cards Grid -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <!-- KPI 1 -->
+      <div class="bg-slate-800 border border-slate-700/60 rounded-xl p-5 shadow-sm hover:border-slate-600 transition">
+        <div class="flex items-center justify-between text-slate-400 mb-2">
+          <span class="text-xs font-semibold uppercase tracking-wider">Tổng Doanh Thu</span>
+          <div class="p-2 bg-emerald-500/10 text-emerald-400 rounded-lg">
+            <i class="fa-solid fa-dollar-sign"></i>
+          </div>
+        </div>
+        <div class="text-2xl font-bold text-slate-100" id="kpiRevenue">$0.00</div>
+        <p class="text-xs text-emerald-400 mt-2 flex items-center gap-1">
+          <i class="fa-solid fa-arrow-trend-up"></i>
+          <span>Live WebSocket push</span>
+        </p>
+      </div>
+
+      <!-- KPI 2 -->
+      <div class="bg-slate-800 border border-slate-700/60 rounded-xl p-5 shadow-sm hover:border-slate-600 transition">
+        <div class="flex items-center justify-between text-slate-400 mb-2">
+          <span class="text-xs font-semibold uppercase tracking-wider">Tổng Đơn Hàng</span>
+          <div class="p-2 bg-blue-500/10 text-blue-400 rounded-lg">
+            <i class="fa-solid fa-basket-shopping"></i>
+          </div>
+        </div>
+        <div class="text-2xl font-bold text-slate-100" id="kpiOrders">0</div>
+        <p class="text-xs text-blue-400 mt-2 flex items-center gap-1">
+          <i class="fa-solid fa-clock-rotate-left"></i>
+          <span>Auto-counted</span>
+        </p>
+      </div>
+
+      <!-- KPI 3 -->
+      <div class="bg-slate-800 border border-slate-700/60 rounded-xl p-5 shadow-sm hover:border-slate-600 transition">
+        <div class="flex items-center justify-between text-slate-400 mb-2">
+          <span class="text-xs font-semibold uppercase tracking-wider">Giá Trị Đơn TB (AOV)</span>
+          <div class="p-2 bg-indigo-500/10 text-indigo-400 rounded-lg">
+            <i class="fa-solid fa-receipt"></i>
+          </div>
+        </div>
+        <div class="text-2xl font-bold text-slate-100" id="kpiAOV">$0.00</div>
+        <p class="text-xs text-indigo-400 mt-2 flex items-center gap-1">
+          <i class="fa-solid fa-calculator"></i>
+          <span>Doanh thu / Đơn hàng</span>
+        </p>
+      </div>
+
+      <!-- KPI 4 -->
+      <div class="bg-slate-800 border border-slate-700/60 rounded-xl p-5 shadow-sm hover:border-slate-600 transition">
+        <div class="flex items-center justify-between text-slate-400 mb-2">
+          <span class="text-xs font-semibold uppercase tracking-wider">Trạng Thái Hệ Thống</span>
+          <div class="p-2 bg-amber-500/10 text-amber-400 rounded-lg">
+            <i class="fa-solid fa-shield-halved"></i>
+          </div>
+        </div>
+        <div class="text-sm font-semibold text-emerald-400 flex items-center gap-2 mt-1">
+          <i class="fa-solid fa-circle-check"></i> RLS Enabled
+        </div>
+        <p class="text-xs text-slate-400 mt-2">Domain Lockdown Active</p>
+      </div>
+    </section>
+
+    <!-- Analytics Charts & Feed Section -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <!-- Chart 1: Bar Chart -->
+      <div class="lg:col-span-2 bg-slate-800 border border-slate-700/60 rounded-xl p-5 shadow-sm">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-base font-semibold text-slate-200">Phân Bổ Doanh Thu Theo Danh Mục</h2>
+          <span class="text-xs bg-slate-700 text-slate-300 px-2.5 py-1 rounded-full">Chart.js Realtime</span>
+        </div>
+        <div class="relative h-64 sm:h-72 w-full">
+          <canvas id="categoryChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Live Order Activity Feed -->
+      <div class="bg-slate-800 border border-slate-700/60 rounded-xl p-5 shadow-sm flex flex-col">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-base font-semibold text-slate-200">Đơn Hàng Mới Nhất</h2>
+          <span class="text-xs bg-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-full flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            Realtime
+          </span>
+        </div>
+        
+        <div id="orderFeed" class="space-y-3 overflow-y-auto max-h-72 pr-1 flex-1">
+          <div class="text-center py-8 text-slate-500 text-sm">Chưa có đơn hàng mới...</div>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <footer class="bg-slate-800 border-t border-slate-700/60 px-6 py-4 text-center text-xs text-slate-500">
+    BI Dashboard Realtime Application &copy; 2026 - Powered by Next.js architecture logic & Supabase Backend
+  </footer>
+
+  <!-- Application Logic JavaScript -->
+  <script>
+    const SUPAGAESE_URL_VAL = "https://your-supabase-project.supabase.co";
+    const SUPABASE_KEY_VAL = "your-supabase-anon-key";
+    
+    const isConfigured = SUPAGAESE_URL_VAL !== "https://your-supabase-project.supabase.co";
+    const supabaseClient = isConfigured ? supabase.createClient(SUPAGAESE_URL_VAL, SUPABASE_KEY_VAL) : null;
+
+    let ordersData = [];
+    let categoryTotals = {
+      'Electronics': 0,
+      'Fashion': 0,
+      'Home': 0,
+      'Books': 0
+    };
+
+    const ctx = document.getElementById('categoryChart').getContext('2d');
+    const categoryChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Electronics', 'Fashion', 'Home', 'Books'],
+        datasets: [{
+          label: 'Doanh thu ($)',
+          data: [0, 0, 0, 0],
+          backgroundColor: [
+            'rgba(99, 102, 241, 0.7)',
+            'rgba(16, 185, 129, 0.7)',
+            'rgba(245, 158, 11, 0.7)',
+            'rgba(236, 72, 153, 0.7)'
+          ],
+          borderColor: [
+            '#6366f1',
+            '#10b981',
+            '#f59e0b',
+            '#ec4899'
+          ],
+          borderWidth: 1,
+          borderRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: '#94a3b8' } },
+          y: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } }
+        }
+      }
+    });
+
+    function updateMetrics() {
+      const totalRev = ordersData.reduce((acc, item) => acc + Number(item.total_amount), 0);
+      const totalOrders = ordersData.length;
+      const aov = totalOrders > 0 ? totalRev / totalOrders : 0;
+
+      document.getElementById('kpiRevenue').innerText = '$' + totalRev.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      document.getElementById('kpiOrders').innerText = totalOrders;
+      document.getElementById('kpiAOV').innerText = '$' + aov.toFixed(2);
+
+      categoryTotals = { 'Electronics': 0, 'Fashion': 0, 'Home': 0, 'Books': 0 };
+      ordersData.forEach(item => {
+        if (categoryTotals[item.category] !== undefined) {
+          categoryTotals[item.category] += Number(item.total_amount);
+        }
+      });
+
+      categoryChart.data.datasets[0].data = [
+        categoryTotals['Electronics'],
+        categoryTotals['Fashion'],
+        categoryTotals['Home'],
+        categoryTotals['Books']
+      ];
+      categoryChart.update();
+    }
+
+    function renderFeed() {
+      const feedContainer = document.getElementById('orderFeed');
+      if (ordersData.length === 0) {
+        feedContainer.innerHTML = `<div class="text-center py-8 text-slate-500 text-sm">Chưa có đơn hàng...</div>`;
+        return;
+      }
+
+      feedContainer.innerHTML = ordersData.slice(0, 10).map(order => `
+        <div class="p-3 bg-slate-700/50 border border-slate-700/80 rounded-lg flex items-center justify-between text-xs transition transform hover:scale-[1.01]">
+          <div>
+            <p class="font-semibold text-slate-200">${order.customer_name}</p>
+            <p class="text-slate-400 mt-0.5">${order.product_name} • <span class="text-indigo-400">${order.category}</span></p>
+          </div>
+          <div class="text-right">
+            <span class="font-bold text-emerald-400 text-sm">+$${Number(order.total_amount).toFixed(2)}</span>
+            <p class="text-[10px] text-slate-500">${new Date(order.created_at).toLocaleTimeString()}</p>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function simulateNewOrder() {
+      const categories = ['Electronics', 'Fashion', 'Home', 'Books'];
+      const randomCategory = categories[Math.floor(Math.random() * categories.length)];
+      const randomPrice = Math.floor(Math.random() * 250) + 25;
+      const newOrder = {
+        id: crypto.randomUUID(),
+        customer_name: `Khách hàng #${Math.floor(Math.random() * 8999) + 1000}`,
+        product_name: `Sản phẩm SKU-${Math.floor(Math.random() * 89) + 10}`,
+        category: randomCategory,
+        total_amount: randomPrice,
+        status: 'Completed',
+        created_at: new Date().toISOString()
+      };
+
+      if (supabaseClient) {
+        const { error } = await supabaseClient.from('orders').insert([newOrder]);
+        if (error) console.error("Error pushing order to Supabase:", error);
+      } else {
+        ordersData.unshift(newOrder);
+        updateMetrics();
+        renderFeed();
+      }
+    }
+
+    function initRealtimeListener() {
+      if (!supabaseClient) return;
+
+      supabaseClient.from('orders').select('*').order('created_at', { ascending: false }).then(({ data }) => {
+        if (data) {
+          ordersData = data;
+          updateMetrics();
+          renderFeed();
+        }
+      });
+
+      supabaseClient
+        .channel('realtime_orders_channel')
+        .on(
+          'postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'orders' },
+          (payload) => {
+            ordersData.unshift(payload.new);
+            updateMetrics();
+            renderFeed();
+          }
+        )
+        .subscribe();
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initRealtimeListener();
+    });
+  </script>
+</body>
+</html>

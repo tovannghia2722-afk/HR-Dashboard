@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Pulse HR — Strategic HR Analytics Dashboard</title>
+  <!-- Chart.js, Supabase Client & SheetJS -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    :root{--bg:#f8fafc;--card:#ffffff;--text:#0f172a;--muted:#64748b;--line:#e2e8f0;--blue:#2563eb;--green:#10b981;--red:#ef4444;--amber:#f59e0b;--purple:#8b5cf6;--cyan:#06b6d4;--shadow:0 10px 25px -5px rgba(0,0,0,0.05)}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 Inter,system-ui,-apple-system,sans-serif}
+    button,input,select{font:inherit}button{cursor:pointer;border:1px solid var(--line);background:white;color:var(--text);border-radius:10px;padding:9px 14px;font-weight:600;transition:all 0.2s}
+    button:hover{border-color:#93c5fd;background:#f1f5f9}
+    button.primary{background:var(--blue);border-color:var(--blue);color:white}button.primary:hover{background:#1d4ed8}
+    button.success{background:var(--green);border-color:var(--green);color:white}
+    .app{display:grid;grid-template-columns:240px minmax(0,1fr);min-height:100vh}
+    .sidebar{background:#0f172a;color:#f8fafc;padding:24px 16px;display:flex;flex-direction:column;gap:8px}
+    .brand{display:flex;align-items:center;gap:12px;padding:4px 8px 20px;font-size:18px;font-weight:800;letter-spacing:-0.5px}
+    .brandmark{display:grid;place-items:center;width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#38bdf8,#6366f1);color:white;font-size:18px}
+    .navlabel{font-size:10px;letter-spacing:1.5px;color:#64748b;padding:12px 8px 4px;font-weight:700}
+    .nav{display:flex;align-items:center;gap:12px;text-align:left;border:0;background:transparent;color:#94a3b8;padding:11px 12px;border-radius:10px;font-weight:600}
+    .nav.active,.nav:hover{background:#1e293b;color:white}
+    .sidebottom{margin-top:auto;border-top:1px solid #334155;padding:16px 8px;color:#64748b;font-size:12px}
+    .main{min-width:0}
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 32px;background:#ffffffd9;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5;backdrop-filter:blur(12px)}
+    .topbar h1{margin:0;font-size:22px;letter-spacing:-0.5px;font-weight:800}
+    .topright{display:flex;align-items:center;gap:10px}
+    .live{display:flex;align-items:center;gap:8px;color:var(--green);font-size:12px;font-weight:700;background:#ecfdf5;padding:8px 12px;border-radius:99px}
+    .dot{width:8px;height:8px;border-radius:50%;background:#10b981;box-shadow:0 0 0 4px #10b98120}
+    .avatar{display:grid;place-items:center;width:38px;height:38px;border-radius:50%;background:#dbeafe;color:#1d4ed8;font-weight:800}
+    .content{padding:28px 32px;max-width:1600px;margin:auto}
+    .welcome{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:24px}
+    .welcome h2{font-size:20px;margin:0 0 4px;font-weight:700}.welcome p{margin:0;color:var(--muted)}
+    .filters{display:flex;gap:10px;flex-wrap:wrap}
+    .field{background:white;border:1px solid var(--line);border-radius:10px;padding:9px 12px;color:var(--text)}
+    .grid{display:grid;gap:18px}.kpis{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:18px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:20px;min-width:0}
+    .kpihead{display:flex;align-items:center;justify-content:space-between;color:var(--muted);font-size:12px;font-weight:600}
+    .kpi-value{font-size:28px;font-weight:800;margin:10px 0 6px;letter-spacing:-0.5px}
+    .charts{grid-template-columns:repeat(2,minmax(0,1fr));margin-bottom:18px}
+    .charttitle h3{margin:0;font-size:15px;font-weight:700}.charttitle p{margin:3px 0 0;color:var(--muted);font-size:12px}
+    .chartwrap{height:280px;position:relative;margin-top:12px}
+    .lower{grid-template-columns:minmax(0,1fr)}
+    .tabletitle{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}
+    .search{border:1px solid var(--line);border-radius:10px;padding:9px 12px;min-width:220px}
+    .tablewrap{overflow:auto}table{width:100%;border-collapse:collapse;white-space:nowrap}
+    th{font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);text-align:left;padding:12px 10px;border-bottom:1px solid var(--line)}
+    td{padding:14px 10px;border-bottom:1px solid #f1f5f9;font-size:13px}
+    .status{display:inline-flex;padding:4px 10px;border-radius:99px;font-size:11px;font-weight:700}
+    .Active{color:#047857;background:#d1fae5}.OnLeave{color:#b45309;background:#fef3c7}.Resigned{color:#b91c1c;background:#fee2e2}
+    .modalback{position:fixed;inset:0;background:#0f172a80;display:none;place-items:center;padding:20px;z-index:20;backdrop-filter:blur(4px)}
+    .modal{background:white;border-radius:20px;padding:24px;width:min(520px,100%);box-shadow:0 20px 50px rgba(0,0,0,0.15)}
+    .formgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+    .formgrid label{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700}
+    .formgrid input,.formgrid select{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px}
+    .modalactions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+    @media(max-width:1100px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.charts{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="brand"><div class="brandmark">✦</div><span>Pulse<span style="color:#38bdf8">HR</span></span></div>
+  <div class="navlabel">HR MODULES</div>
+  <button class="nav active" type="button">📊 <span>Strategic Overview</span></button>
+  <button class="nav" type="button" onclick="alert('Module C&B Payroll nâng cao sắp phát hành')">💰 <span>C&B & Payroll</span></button>
+  <button class="nav" type="button" onclick="alert('Module Recruitment Tracking sắp phát hành')">🎯 <span>Talent Acquisition</span></button>
+  <div class="navlabel">MANAGEMENT</div>
+  <button class="nav" type="button" onclick="openModal()">＋ <span>Thêm nhân sự mới</span></button>
+  <button class="nav" type="button" onclick="document.getElementById('excelInput').click()">📥 <span>Import từ Excel</span></button>
+  <input type="file" id="excelInput" accept=".xlsx, .xls, .csv" style="display:none" onchange="handleExcelImport(event)">
+  <div class="sidebottom">HR ANALYTICS SYSTEM<br>Connected to Supabase DB</div>
+</aside>
+
+<section class="main">
+  <header class="topbar">
+    <div><h1>HR Intelligence & Workforce Analytics</h1></div>
+    <div class="topright">
+      <button type="button" class="success" onclick="downloadTemplate()">📄 Tải Excel Mẫu</button>
+      <div class="live"><span class="dot"></span><span>Live Database</span></div>
+      <button type="button" onclick="fetchEmployees()">↻ làm mới</button>
+      <div class="avatar">HR</div>
+    </div>
+  </header>
+
+  <main class="content">
+    <div class="welcome">
+      <div><h2>Báo cáo Chiến lược Nhân sự (HR Dashboard)</h2><p>Phân tích biến động định biên, chi phí lương C&B, hiệu suất KPI và đào tạo L&D.</p></div>
+      <div class="filters">
+        <select class="field" id="deptFilter" onchange="fetchEmployees()">
+          <option value="all">Tất cả Phòng ban</option>
+          <option value="HR">HR / Admin</option>
+          <option value="C&B">C&B</option>
+          <option value="Talent Acquisition">Talent Acquisition</option>
+          <option value="L&D">L&D</option>
+          <option value="IT">IT & Tech</option>
+          <option value="Sales">Sales</option>
+          <option value="Marketing">Marketing</option>
+        </select>
+        <select class="field" id="statusFilter" onchange="fetchEmployees()">
+          <option value="all">Tất cả Trạng thái</option>
+          <option value="Active">Đang làm việc</option>
+          <option value="On Leave">Nghỉ phép</option>
+          <option value="Resigned">Đã nghỉ việc</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- KPI CARDS -->
+    <div class="grid kpis">
+      <article class="card"><div class="kpihead">Tổng Định biên (Headcount)</div><div class="kpi-value" id="totalEmp">0</div><div style="font-size:11px;color:var(--muted)" id="activeSub">0 nhân viên đang làm việc</div></article>
+      <article class="card"><div class="kpihead">Tỷ lệ Nghỉ việc (Turnover Rate)</div><div class="kpi-value" id="turnoverRate" style="color:var(--red)">0%</div><div style="font-size:11px;color:var(--muted)">Chỉ số biến động nhân sự</div></article>
+      <article class="card"><div class="kpihead">Tổng Chi phí Lương & Phụ cấp</div><div class="kpi-value" id="totalPayroll" style="color:var(--blue)">0 ₫</div><div style="font-size:11px;color:var(--muted)">Quỹ lương C&B hàng tháng</div></article>
+      <article class="card"><div class="kpihead">Số giờ Đào tạo Trung bình</div><div class="kpi-value" id="avgTraining" style="color:var(--purple)">0 hrs</div><div style="font-size:11px;color:var(--muted)">Chỉ số L&D tích lũy / nhân viên</div></article>
+    </div>
+
+    <!-- CHARTS GRID -->
+    <div class="grid charts">
+      <article class="card">
+        <div class="charttitle"><h3>Cơ cấu Nhân sự theo Phòng ban</h3><p>Phân bổ định biên thực tế giữa các bộ phận</p></div>
+        <div class="chartwrap"><canvas id="deptChart"></canvas></div>
+      </article>
+      <article class="card">
+        <div class="charttitle"><h3>Tỷ trọng Hình thức Hợp đồng</h3><p>Full-time, Part-time, Internship & Contract</p></div>
+        <div class="chartwrap"><canvas id="typeChart"></canvas></div>
+      </article>
+      <article class="card">
+        <div class="charttitle"><h3>Phân khúc Đánh giá Hiệu suất KPI</h3><p>Đánh giá chất lượng nhân sự định kỳ</p></div>
+        <div class="chartwrap"><canvas id="kpiChart"></canvas></div>
+      </article>
+      <article class="card">
+        <div class="charttitle"><h3>Trạng thái Nhân sự & Turnover</h3><p>Tỷ lệ Active, Nghỉ phép và Nghỉ việc</p></div>
+        <div class="chartwrap"><canvas id="statusChart"></canvas></div>
+      </article>
+    </div>
+
+    <!-- HR DATA TABLE -->
+    <div class="grid lower">
+      <article class="card">
+        <div class="tabletitle">
+          <h3>Hồ sơ Chi tiết Nhân sự</h3>
+          <input id="search" class="search" placeholder="Tìm tên, mã NV, vị trí..." oninput="renderTable()">
+        </div>
+        <div class="tablewrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Mã NV</th>
+                <th>Họ & Tên</th>
+                <th>Phòng ban</th>
+                <th>Vị trí</th>
+                <th>Loại HĐ</th>
+                <th>Lương & Phụ cấp</th>
+                <th>Điểm KPI</th>
+                <th>Giờ Đào tạo</th>
+                <th>Trạng thái</th>
+              </tr>
+            </thead>
+            <tbody id="empRows"></tbody>
+          </table>
+        </div>
+      </article>
+    </div>
+  </main>
+</section>
+</div>
+
+<!-- MODAL THÊM HỒ SƠ NHÂN SỰ -->
+<div class="modalback" id="modalback">
+  <form class="modal" id="empForm">
+    <h3>Thêm Hồ sơ Nhân sự Mới</h3>
+    <div class="formgrid">
+      <label>Mã NV<input id="empCode" required placeholder="Ví dụ: HR-108"></label>
+      <label>Họ và Tên<input id="fullName" required placeholder="Nguyễn Văn A"></label>
+      <label>Phòng ban
+        <select id="department">
+          <option value="HR">HR / Admin</option>
+          <option value="C&B">C&B</option>
+          <option value="Talent Acquisition">Talent Acquisition</option>
+          <option value="L&D">L&D</option>
+          <option value="IT">IT</option>
+          <option value="Sales">Sales</option>
+          <option value="Marketing">Marketing</option>
+        </select>
+      </label>
+      <label>Vị trí / Chức danh<input id="position" required placeholder="C&B Specialist"></label>
+      <label>Loại hợp đồng
+        <select id="empType">
+          <option value="Full-time">Full-time</option>
+          <option value="Part-time">Part-time</option>
+          <option value="Intern">Internship</option>
+          <option value="Contract">Contractor</option>
+        </select>
+      </label>
+      <label>Lương cơ bản (₫)<input id="salary" type="number" required value="15000000" step="500000"></label>
+      <label>Phụ cấp (₫)<input id="allowance" type="number" value="1000000" step="100000"></label>
+      <label>Điểm KPI (1.0 - 5.0)<input id="kpiScore" type="number" min="1" max="5" step="0.1" value="4.0"></label>
+      <label>Số giờ đào tạo<input id="trainHours" type="number" value="10"></label>
+      <label>Trạng thái
+        <select id="status">
+          <option value="Active">Đang làm việc</option>
+          <option value="On Leave">Nghỉ phép</option>
+          <option value="Resigned">Đã nghỉ việc</option>
+        </select>
+      </label>
+    </div>
+    <div class="modalactions">
+      <button type="button" onclick="closeModal()">Hủy</button>
+      <button class="primary" type="submit">Lưu vào Hệ thống</button>
+    </div>
+  </form>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://tounlksrxbhvlqfiakcd.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_DCOJ5XXIn8qT5NVV534UJA_QZPIaEKC';
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const money = n => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(n);
+  let employees = [];
+  let deptChart, typeChart, kpiChart, statusChart;
+
+  async function fetchEmployees() {
+    let query = supabaseClient.from('hr_employees').select('*').order('created_at', { ascending: false });
+    const dept = document.getElementById('deptFilter').value;
+    const status = document.getElementById('statusFilter').value;
+    
+    if (dept !== 'all') query = query.eq('department', dept);
+    if (status !== 'all') query = query.eq('status', status);
+
+    const { data, error } = await query;
+    if (error) { console.error('Lỗi tải dữ liệu HR:', error); return; }
+    employees = data || [];
+    updateHRDashboard();
+  }
+
+  function updateHRDashboard() {
+    const total = employees.length;
+    const active = employees.filter(e => e.status === 'Active').length;
+    const resigned = employees.filter(e => e.status === 'Resigned').length;
+    
+    // Tính các chỉ số HR chuyên sâu
+    const turnover = total ? ((resigned / total) * 100).toFixed(1) : 0;
+    const totalPayrollVal = employees.reduce((s, e) => s + Number(e.salary || 0) + Number(e.allowance || 0), 0);
+    const avgTrainVal = total ? (employees.reduce((s, e) => s + Number(e.training_hours || 0), 0) / total).toFixed(1) : 0;
+
+    document.getElementById('totalEmp').textContent = total;
+    document.getElementById('activeSub').textContent = `${active} nhân viên đang hoạt động`;
+    document.getElementById('turnoverRate').textContent = `${turnover}%`;
+    document.getElementById('totalPayroll').textContent = money(totalPayrollVal);
+    document.getElementById('avgTraining').textContent = `${avgTrainVal} hrs`;
+
+    renderHRCharts();
+    renderTable();
+  }
+
+  function renderTable() {
+    const query = document.getElementById('search').value.toLowerCase();
+    const filtered = employees.filter(e => (e.employee_code + ' ' + e.full_name + ' ' + e.position + ' ' + e.department).toLowerCase().includes(query));
+    
+    document.getElementById('empRows').innerHTML = filtered.map(e => `
+      <tr>
+        <td><strong>${e.employee_code}</strong></td>
+        <td>${e.full_name}</td>
+        <td>${e.department}</td>
+        <td>${e.position}</td>
+        <td>${e.employment_type || 'Full-time'}</td>
+        <td><strong>${money(Number(e.salary || 0) + Number(e.allowance || 0))}</strong></td>
+        <td>⭐ ${e.performance_score || 'N/A'}</td>
+        <td>${e.training_hours || 0} hrs</td>
+        <td><span class="status ${e.status.replace(/\s+/g, '')}">${e.status}</span></td>
+      </tr>
+    `).join('') || '<tr><td colspan="9" style="color:#64748b;text-align:center;padding:25px">Không tìm thấy dữ liệu nhân sự phù hợp</td></tr>';
+  }
+
+  function renderHRCharts() {
+    if (deptChart) deptChart.destroy();
+    if (typeChart) typeChart.destroy();
+    if (kpiChart) kpiChart.destroy();
+    if (statusChart) statusChart.destroy();
+
+    const depts = ['HR', 'C&B', 'Talent Acquisition', 'L&D', 'IT', 'Sales', 'Marketing'];
+    const deptCounts = depts.map(d => employees.filter(e => e.department === d).length);
+    
+    // 1. Biểu đồ cột: Nhân sự theo Phòng ban
+    deptChart = new Chart(document.getElementById('deptChart'), {
+      type: 'bar',
+      data: { labels: depts, datasets: [{ label: 'Định biên (Headcount)', data: deptCounts, backgroundColor: '#2563eb', borderRadius: 8 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+    });
+
+    // 2. Biểu đồ tròn: Loại hình hợp đồng
+    const types = ['Full-time', 'Part-time', 'Intern', 'Contract'];
+    const typeCounts = types.map(t => employees.filter(e => (e.employment_type || 'Full-time') === t).length);
+    typeChart = new Chart(document.getElementById('typeChart'), {
+      type: 'doughnut',
+      data: { labels: types, datasets: [{ data: typeCounts, backgroundColor: ['#2563eb', '#06b6d4', '#10b981', '#f59e0b'], borderWidth: 0 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+    });
+
+    // 3. Biểu đồ thanh ngang: Đánh giá KPI
+    const kpiRanges = ['Xuất sắc (>=4.5)', 'Tốt (4.0 - 4.4)', 'Đạt (3.0 - 3.9)', 'Cần cải thiện (<3.0)'];
+    const kpiCounts = [
+      employees.filter(e => e.performance_score >= 4.5).length,
+      employees.filter(e => e.performance_score >= 4.0 && e.performance_score < 4.5).length,
+      employees.filter(e => e.performance_score >= 3.0 && e.performance_score < 4.0).length,
+      employees.filter(e => e.performance_score < 3.0).length
+    ];
+    kpiChart = new Chart(document.getElementById('kpiChart'), {
+      type: 'bar',
+      data: { labels: kpiRanges, datasets: [{ label: 'Số lượng nhân sự', data: kpiCounts, backgroundColor: '#8b5cf6', borderRadius: 8 }] },
+      options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+    });
+
+    // 4. Biểu đồ tròn: Trạng thái & Turnover
+    const statusCounts = ['Active', 'On Leave', 'Resigned'].map(s => employees.filter(e => e.status === s).length);
+    statusChart = new Chart(document.getElementById('statusChart'), {
+      type: 'pie',
+      data: { labels: ['Đang làm việc', 'Nghỉ phép', 'Đã nghỉ việc'], datasets: [{ data: statusCounts, backgroundColor: ['#10b981', '#f59e0b', '#ef4444'], borderWidth: 0 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+    });
+  }
+
+  // Import file Excel chuyên biệt cho ngành HR
+  async function handleExcelImport(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+
+      if (!jsonData || jsonData.length === 0) {
+        alert('File Excel không đúng định dạng!');
+        return;
+      }
+
+      const newEmployees = jsonData.map(row => ({
+        employee_code: row['Mã NV'] || ('HR-' + Math.floor(100 + Math.random() * 900)),
+        full_name: row['Họ tên'] || 'Nhân viên mới',
+        department: row['Phòng ban'] || 'HR',
+        position: row['Vị trí'] || 'Specialist',
+        employment_type: row['Loại HĐ'] || 'Full-time',
+        salary: Number(row['Lương']) || 10000000,
+        allowance: Number(row['Phụ cấp']) || 0,
+        performance_score: Number(row['KPI']) || 4.0,
+        training_hours: Number(row['Giờ đào tạo']) || 0,
+        status: row['Trạng thái'] || 'Active'
+      }));
+
+      const { error } = await supabaseClient.from('hr_employees').insert(newEmployees);
+      if (error) { alert('Lỗi import dữ liệu: ' + error.message); } 
+      else { alert(`Đã thêm thành công ${newEmployees.length} hồ sơ nhân sự vào Supabase!`); fetchEmployees(); }
+    };
+    reader.readAsArrayBuffer(file);
+    event.target.value = '';
+  }
+
+  function downloadTemplate() {
+    const templateData = [
+      { 'Mã NV': 'HR-201', 'Họ tên': 'Vũ Hoàng Anh', 'Phòng ban': 'C&B', 'Vị trí': 'C&B Executive', 'Loại HĐ': 'Full-time', 'Lương': 15000000, 'Phụ cấp': 1500000, 'KPI': 4.3, 'Giờ đào tạo': 16, 'Trạng thái': 'Active' },
+      { 'Mã NV': 'HR-202', 'Họ tên': 'Trần Ngọc Bích', 'Phòng ban': 'Talent Acquisition', 'Vị trí': 'Recruiter Intern', 'Loại HĐ': 'Intern', 'Lương': 4500000, 'Phụ cấp': 500000, 'KPI': 4.0, 'Giờ đào tạo': 8, 'Trạng thái': 'Active' }
+    ];
+    const ws = XLSX.utils.json_to_sheet(templateData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "HR_Template");
+    XLSX.writeFile(wb, "HR_Import_Template.xlsx");
+  }
+
+  document.getElementById('empForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const newEmp = {
+      employee_code: document.getElementById('empCode').value.trim(),
+      full_name: document.getElementById('fullName').value.trim(),
+      department: document.getElementById('department').value,
+      position: document.getElementById('position').value.trim(),
+      employment_type: document.getElementById('empType').value,
+      salary: Number(document.getElementById('salary').value),
+      allowance: Number(document.getElementById('allowance').value),
+      performance_score: Number(document.getElementById('kpiScore').value),
+      training_hours: Number(document.getElementById('trainHours').value),
+      status: document.getElementById('status').value
+    };
+
+    const { error } = await supabaseClient.from('hr_employees').insert([newEmp]);
+    if (error) { alert('Lỗi: ' + error.message); } 
+    else { closeModal(); fetchEmployees(); }
+  });
+
+  supabaseClient.channel('public:hr_employees').on('postgres_changes', { event: '*', schema: 'public', table: 'hr_employees' }, fetchEmployees).subscribe();
+
+  function openModal() { document.getElementById('modalback').style.display = 'grid'; }
+  function closeModal() { document.getElementById('modalback').style.display = 'none'; }
+  document.getElementById('modalback').addEventListener('click', e => { if (e.target.id === 'modalback') closeModal(); });
+
+  fetchEmployees();
+</script>
+</body>
+</html>

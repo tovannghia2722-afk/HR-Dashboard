@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Pulse HR — Executive Analytics Dashboard</title>
+  <!-- Chart.js, Supabase Client & SheetJS -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    :root {
+      --bg-main: #e2e8f0;
+      --sidebar-bg: #14213a;
+      --sidebar-card: #1b2a47;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --line: #cbd5e1;
+      --navy-primary: #1e3a8a;
+      --teal-accent: #0284c7;
+      --blue-bar: #3b82f6;
+      --green-accent: #059669;
+      --shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg-main); color: var(--text-main); font: 13px/1.5 Inter, system-ui, -apple-system, sans-serif; }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; border: 1px solid var(--line); background: white; color: var(--text-main); border-radius: 6px; padding: 7px 12px; font-weight: 600; transition: all 0.2s; }
+    button:hover { background: #f1f5f9; }
+    button.primary { background: var(--navy-primary); border-color: var(--navy-primary); color: white; }
+    button.primary:hover { background: #1e40af; }
+    button.success { background: var(--green-accent); border-color: var(--green-accent); color: white; }
+    
+    .app { display: grid; grid-template-columns: 240px minmax(0, 1fr); min-height: 100vh; }
+    
+    /* SIDEBAR THEME TỪ HÌNH ẢNH */
+    .sidebar { background: var(--sidebar-bg); color: #f8fafc; padding: 20px 14px; display: flex; flex-direction: column; gap: 8px; }
+    .brand { display: flex; align-items: center; gap: 10px; padding: 0 8px 16px; font-size: 16px; font-weight: 800; border-bottom: 1px solid #283a5e; }
+    .brandmark { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, #38bdf8, #2563eb); color: white; font-size: 16px; }
+    .navlabel { font-size: 10px; letter-spacing: 1px; color: #94a3b8; padding: 10px 8px 2px; font-weight: 700; text-transform: uppercase; }
+    .nav { display: flex; align-items: center; gap: 10px; text-align: left; border: 0; background: transparent; color: #cbd5e1; padding: 10px 12px; border-radius: 8px; font-weight: 600; width: 100%; }
+    .nav.active { background: #ffffff; color: var(--sidebar-bg); font-weight: 800; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    .nav:hover:not(.active) { background: var(--sidebar-card); color: white; }
+    
+    .sidebar-filter { background: var(--sidebar-card); padding: 12px; border-radius: 10px; margin-top: 10px; }
+    .sidebar-filter label { font-size: 11px; color: #94a3b8; display: block; margin-bottom: 4px; font-weight: 600; }
+    .sidebar-filter select { width: 100%; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 6px; padding: 6px 8px; margin-bottom: 10px; font-size: 12px; }
+
+    .main { min-width: 0; padding: 16px 20px; }
+    
+    /* TIMEBAR FILTER NHƯ TRONG ẢNH */
+    .timeline-bar { background: var(--card-bg); border-radius: 8px; padding: 6px 12px; display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--line); margin-bottom: 16px; }
+    .months-group { display: flex; gap: 4px; }
+    .month-btn { border: 0; background: transparent; padding: 5px 10px; font-size: 11px; font-weight: 700; color: var(--text-muted); border-radius: 4px; }
+    .month-btn.active, .month-btn:hover { background: #dbeafe; color: var(--navy-primary); }
+
+    .top-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .top-actions h1 { margin: 0; font-size: 20px; color: var(--sidebar-bg); font-weight: 800; }
+    .top-btns { display: flex; gap: 8px; }
+
+    /* GRID & CARDS */
+    .grid { display: grid; gap: 14px; }
+    .kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .card { background: var(--card-bg); border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow); padding: 16px; min-width: 0; }
+    .kpihead { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+    .kpi-value { font-size: 24px; font-weight: 800; margin: 8px 0 4px; color: var(--sidebar-bg); }
+    
+    .charts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .charttitle { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px; }
+    .charttitle h3 { margin: 0; font-size: 13px; font-weight: 800; color: var(--sidebar-bg); }
+    .chartwrap { height: 250px; position: relative; }
+
+    /* CUSTOM CHART BUILDER PANEL */
+    .builder-card { background: #f8fafc; border: 2px dashed var(--teal-accent); border-radius: 10px; padding: 14px; margin-bottom: 16px; }
+    .builder-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 8px; }
+
+    /* TABLE */
+    .tablewrap { overflow: auto; max-height: 300px; }
+    table { width: 100%; border-collapse: collapse; white-space: nowrap; font-size: 12px; }
+    th { background: #f8fafc; color: var(--sidebar-bg); text-align: left; padding: 10px; border-bottom: 2px solid var(--line); font-weight: 800; }
+    td { padding: 10px; border-bottom: 1px solid #f1f5f9; }
+    .status { padding: 3px 8px; border-radius: 99px; font-size: 10px; font-weight: 800; }
+    .Active { background: #d1fae5; color: #047857; }
+    .OnLeave { background: #fef3c7; color: #b45309; }
+    .Resigned { background: #fee2e2; color: #b91c1c; }
+
+    @media print {
+      .sidebar, .top-btns, .timeline-bar, .builder-card { display: none !important; }
+      .app { grid-template-columns: 1fr; }
+      body { background: white; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <!-- SIDEBAR THEME GIỐNG HÌNH -->
+  <aside class="sidebar">
+    <div class="brand"><div class="brandmark">✦</div><span>Pulse HR Analytics</span></div>
+    
+    <div class="navlabel">GIAO DIỆN & BÁO CÁO</div>
+    <button class="nav active">📊 Executive HR Overview</button>
+
+    <div class="sidebar-filter">
+      <div class="navlabel" style="padding:0 0 6px;">BỘ LỌC BÁO CÁO</div>
+      <label>Phòng ban:</label>
+      <select id="deptFilter" onchange="fetchEmployees()">
+        <option value="all">Tất cả Phòng ban</option>
+        <option value="HR">HR / Admin</option>
+        <option value="C&B">C&B</option>
+        <option value="Talent Acquisition">Talent Acquisition</option>
+        <option value="L&D">L&D</option>
+        <option value="IT">IT & Tech</option>
+        <option value="Sales">Sales</option>
+        <option value="Marketing">Marketing</option>
+      </select>
+
+      <label>Trạng thái:</label>
+      <select id="statusFilter" onchange="fetchEmployees()">
+        <option value="all">Tất cả Trạng thái</option>
+        <option value="Active">Đang làm việc</option>
+        <option value="On Leave">Nghỉ phép</option>
+        <option value="Resigned">Đã nghỉ việc</option>
+      </select>
+    </div>
+
+    <div style="margin-top:auto;">
+      <button class="nav" onclick="document.getElementById('excelInput').click()" style="background:#283a5e;color:white;">📥 Import Excel mới</button>
+      <input type="file" id="excelInput" accept=".xlsx, .xls, .csv" style="display:none" onchange="handleExcelImport(event)">
+    </div>
+  </aside>
+
+  <main class="main">
+    <!-- THANH CHỌN THÁNG (TIMELINE BAR) -->
+    <div class="timeline-bar">
+      <div class="months-group">
+        <button class="month-btn">Jan</button><button class="month-btn">Feb</button><button class="month-btn">Mar</button>
+        <button class="month-btn">Apr</button><button class="month-btn">May</button><button class="month-btn">Jun</button>
+        <button class="month-btn">Jul</button><button class="month-btn">Aug</button><button class="month-btn">Sep</button>
+        <button class="month-btn">Oct</button><button class="month-btn">Nov</button><button class="month-btn">Dec</button>
+      </div>
+      <div><span style="font-size:11px;font-weight:700;color:var(--text-muted)">Năm báo cáo: 2026</span></div>
+    </div>
+
+    <div class="top-actions">
+      <h1>HR Performance & Cost Drivers</h1>
+      <div class="top-btns">
+        <button class="primary" onclick="exportToExcel()">📊 Xuất Excel</button>
+        <button class="success" onclick="window.print()">📄 Xuất PDF (Print)</button>
+      </div>
+    </div>
+
+    <!-- KPI CARDS GIỐNG HÌNH -->
+    <div class="grid kpis" style="margin-bottom:14px;">
+      <article class="card"><div class="kpihead">Tổng Định biên (Headcount)</div><div class="kpi-value" id="totalEmp">0</div></article>
+      <article class="card"><div class="kpihead">Tỷ lệ Nghỉ việc (Turnover)</div><div class="kpi-value" id="turnoverRate" style="color:#dc2626">0%</div></article>
+      <article class="card"><div class="kpihead">Tổng Chi phí Lương (Payroll)</div><div class="kpi-value" id="totalPayroll" style="color:var(--teal-accent)">0 ₫</div></article>
+      <article class="card"><div class="kpihead">Số giờ Đào tạo TB (L&D)</div><div class="kpi-value" id="avgTraining">0 hrs</div></article>
+    </div>
+
+    <!-- TÙY CHỌN VẼ BIỂU ĐỒ TỪ EXCEL IMPORT -->
+    <div class="builder-card" id="builderPanel" style="display:none;">
+      <div style="font-weight:800;color:var(--sidebar-bg);font-size:13px;">⚙️ TÙY CHỈNH BIỂU ĐỒ TỪ DỮ LIỆU EXCEL NHẬP VÀO:</div>
+      <div class="builder-grid">
+        <div><label>Trục X (Danh mục):</label><select id="xAxisSelect" class="field" style="width:100%"></select></div>
+        <div><label>Trục Y (Giá trị):</label><select id="yAxisSelect" class="field" style="width:100%"></select></div>
+        <div><label>Loại biểu đồ:</label>
+          <select id="chartTypeSelect" class="field" style="width:100%">
+            <option value="bar">Biểu đồ Cột (Bar)</option>
+            <option value="line">Biểu đồ Đường (Line)</option>
+            <option value="doughnut">Biểu đồ Tròn (Doughnut)</option>
+            <option value="horizontalBar">Biểu đồ Thanh ngang</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:flex-end;"><button class="primary" onclick="renderCustomChart()" style="width:100%">🎨 Vẽ Biểu Đồ</button></div>
+      </div>
+    </div>
+
+    <!-- CHARTS GRID -->
+    <div class="grid charts" style="margin-bottom:14px;">
+      <article class="card">
+        <div class="charttitle"><h3>Cơ cấu Định biên theo Phòng ban</h3></div>
+        <div class="chartwrap"><canvas id="deptChart"></canvas></div>
+      </article>
+      <article class="card">
+        <div class="charttitle"><h3 id="customChartTitle">Biểu đồ Tùy chỉnh (Custom Chart)</h3></div>
+        <div class="chartwrap"><canvas id="customChartCanvas"></canvas></div>
+      </article>
+    </div>
+
+    <!-- TABLE -->
+    <article class="card">
+      <div class="charttitle">
+        <h3>Hồ sơ Chi tiết Nhân sự</h3>
+        <input id="search" class="field" placeholder="Tìm tên, mã NV..." oninput="renderTable()" style="padding:4px 8px;">
+      </div>
+      <div class="tablewrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Mã NV</th><th>Họ & Tên</th><th>Phòng ban</th><th>Vị trí</th><th>Loại HĐ</th><th>Lương & Phụ cấp</th><th>Điểm KPI</th><th>Trạng thái</th>
+            </tr>
+          </thead>
+          <tbody id="empRows"></tbody>
+        </table>
+      </div>
+    </article>
+  </main>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://tounlksrxbhvlqfiakcd.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_DCOJ5XXIn8qT5NVV534UJA_QZPIaEKC';
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const money = n => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(n);
+  let employees = [];
+  let rawExcelData = [];
+  let deptChart, customChart;
+
+  async function fetchEmployees() {
+    let query = supabaseClient.from('hr_employees').select('*').order('created_at', { ascending: false });
+    const dept = document.getElementById('deptFilter').value;
+    const status = document.getElementById('statusFilter').value;
+    
+    if (dept !== 'all') query = query.eq('department', dept);
+    if (status !== 'all') query = query.eq('status', status);
+
+    const { data, error } = await query;
+    if (error) { console.error('Lỗi tải dữ liệu:', error); return; }
+    employees = data || [];
+    updateDashboard();
+  }
+
+  function updateDashboard() {
+    const total = employees.length;
+    const active = employees.filter(e => e.status === 'Active').length;
+    const resigned = employees.filter(e => e.status === 'Resigned').length;
+    const turnover = total ? ((resigned / total) * 100).toFixed(1) : 0;
+    const totalPayrollVal = employees.reduce((s, e) => s + Number(e.salary || 0) + Number(e.allowance || 0), 0);
+    const avgTrainVal = total ? (employees.reduce((s, e) => s + Number(e.training_hours || 0), 0) / total).toFixed(1) : 0;
+
+    document.getElementById('totalEmp').textContent = total;
+    document.getElementById('turnoverRate').textContent = `${turnover}%`;
+    document.getElementById('totalPayroll').textContent = money(totalPayrollVal);
+    document.getElementById('avgTraining').textContent = `${avgTrainVal} hrs`;
+
+    renderDeptChart();
+    renderTable();
+  }
+
+  function renderTable() {
+    const query = document.getElementById('search').value.toLowerCase();
+    const filtered = employees.filter(e => (e.employee_code + ' ' + e.full_name + ' ' + e.department).toLowerCase().includes(query));
+    
+    document.getElementById('empRows').innerHTML = filtered.map(e => `
+      <tr>
+        <td><strong>${e.employee_code}</strong></td>
+        <td>${e.full_name}</td>
+        <td>${e.department}</td>
+        <td>${e.position}</td>
+        <td>${e.employment_type || 'Full-time'}</td>
+        <td><strong>${money(Number(e.salary || 0) + Number(e.allowance || 0))}</strong></td>
+        <td>⭐ ${e.performance_score || 'N/A'}</td>
+        <td><span class="status ${e.status.replace(/\s+/g, '')}">${e.status}</span></td>
+      </tr>
+    `).join('');
+  }
+
+  function renderDeptChart() {
+    if (deptChart) deptChart.destroy();
+    const depts = ['HR', 'C&B', 'Talent Acquisition', 'L&D', 'IT', 'Sales', 'Marketing'];
+    const deptCounts = depts.map(d => employees.filter(e => e.department === d).length);
+    
+    deptChart = new Chart(document.getElementById('deptChart'), {
+      type: 'bar',
+      data: { labels: depts, datasets: [{ label: 'Số nhân viên', data: deptCounts, backgroundColor: '#1e3a8a', borderRadius: 4 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+    });
+  }
+
+  // ĐỌC FILE EXCEL & TỰ ĐỘNG LẤY TÊN CỘT ĐỂ CHỌN VẼ BIỂU ĐỒ
+  function handleExcelImport(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      rawExcelData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+
+      if (!rawExcelData || rawExcelData.length === 0) {
+        alert('File Excel rỗng!');
+        return;
+      }
+
+      // Hiện bảng tùy chọn vẽ biểu đồ
+      document.getElementById('builderPanel').style.display = 'block';
+      const keys = Object.keys(rawExcelData[0]);
+
+      const xAxisSelect = document.getElementById('xAxisSelect');
+      const yAxisSelect = document.getElementById('yAxisSelect');
+      xAxisSelect.innerHTML = keys.map(k => `<option value="${k}">${k}</option>`).join('');
+      yAxisSelect.innerHTML = keys.map(k => `<option value="${k}">${k}</option>`).join('');
+
+      alert('Tải file Excel thành công! Bạn có thể chọn danh mục và chỉ số để vẽ biểu đồ bên dưới.');
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  // VẼ BIỂU ĐỒ TÙY CHỌN TỪ EXCEL
+  function renderCustomChart() {
+    const xKey = document.getElementById('xAxisSelect').value;
+    const yKey = document.getElementById('yAxisSelect').value;
+    const chartType = document.getElementById('chartTypeSelect').value;
+
+    const labels = rawExcelData.map(r => r[xKey] || 'N/A');
+    const values = rawExcelData.map(r => Number(r[yKey]) || 0);
+
+    if (customChart) customChart.destroy();
+
+    document.getElementById('customChartTitle').textContent = `Biểu đồ: ${yKey} theo ${xKey}`;
+
+    const isHorizontal = chartType === 'horizontalBar';
+    const actualType = isHorizontal ? 'bar' : chartType;
+
+    customChart = new Chart(document.getElementById('customChartCanvas'), {
+      type: actualType,
+      data: {
+        labels: labels,
+        datasets: [{
+          label: yKey,
+          data: values,
+          backgroundColor: ['#0284c7', '#3b82f6', '#059669', '#f59e0b', '#8b5cf6', '#ec4899'],
+          borderRadius: 4
+        }]
+      },
+      options: {
+        indexAxis: isHorizontal ? 'y' : 'x',
+        responsive: true,
+        maintainAspectRatio: false
+      }
+    });
+  }
+
+  // XUẤT FILE EXCEL KHÔNG CẦN NHẬP LẠI DỮ LIỆU
+  function exportToExcel() {
+    const exportData = employees.map(e => ({
+      'Mã NV': e.employee_code,
+      'Họ tên': e.full_name,
+      'Phòng ban': e.department,
+      'Vị trí': e.position,
+      'Lương': e.salary,
+      'Phụ cấp': e.allowance,
+      'Điểm KPI': e.performance_score,
+      'Trạng thái': e.status
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "HR_Report");
+    XLSX.writeFile(wb, "Bao_Cao_Nhan_Su.xlsx");
+  }
+
+  fetchEmployees();
+</script>
+</body>
+</html>

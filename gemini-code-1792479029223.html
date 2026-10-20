@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pulse BI — Supabase Connected</title>
+  <meta name="description" content="Dashboard BI tĩnh kết nối với Supabase chạy trên GitHub Pages">
+  <!-- Chart.js & Supabase JS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg: #f5f7fb; --card: #ffffff; --text: #172033; --muted: #748097;
+      --line: #e6eaf1; --blue: #2563eb; --green: #059669; --red: #dc2626; --amber: #d97706;
+      --shadow: 0 8px 28px #1720330a;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.5 Inter, ui-sans-serif, system-ui, -apple-system, sans-serif; }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; border: 1px solid var(--line); background: white; color: var(--text); border-radius: 10px; padding: 9px 12px; font-weight: 600; }
+    button:hover { border-color: #9cb7f9; }
+    button.primary { background: var(--blue); border-color: var(--blue); color: white; }
+    .app { display: grid; grid-template-columns: 235px minmax(0, 1fr); min-height: 100vh; }
+    .sidebar { background: #111a2e; color: #dbe4f5; padding: 22px 14px; display: flex; flex-direction: column; gap: 7px; }
+    .brand { display: flex; align-items: center; gap: 11px; padding: 4px 10px 24px; font-size: 17px; font-weight: 800; }
+    .brandmark { display: grid; place-items: center; width: 35px; height: 35px; border-radius: 11px; background: linear-gradient(135deg, #38bdf8, #4f46e5); color: white; font-size: 18px; }
+    .navlabel { font-size: 10px; letter-spacing: 1.4px; color: #7f8ba4; padding: 13px 12px 5px; }
+    .nav { display: flex; align-items: center; gap: 12px; text-align: left; border: 0; background: transparent; color: #aebbd2; padding: 11px 13px; border-radius: 10px; font-weight: 600; }
+    .nav.active, .nav:hover { background: #25314c; color: white; }
+    .sidebottom { margin-top: auto; border-top: 1px solid #2c3750; padding: 15px 10px; color: #93a1ba; font-size: 12px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 22px 28px; background: #ffffffd9; border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 5; backdrop-filter: blur(12px); }
+    .topbar h1 { margin: 0; font-size: 22px; letter-spacing: -.7px; }
+    .live { display: flex; align-items: center; gap: 7px; color: var(--green); font-size: 12px; font-weight: 700; background: #ecfdf5; padding: 8px 10px; border-radius: 99px; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: #10b981; box-shadow: 0 0 0 4px #10b98120; }
+    .content { padding: 24px 28px 38px; max-width: 1600px; margin: auto; }
+    .welcome { display: flex; justify-content: space-between; align-items: flex-end; gap: 15px; flex-wrap: wrap; margin-bottom: 20px; }
+    .filters { display: flex; gap: 9px; flex-wrap: wrap; }
+    .field { background: white; border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px; color: var(--text); }
+    .grid { display: grid; gap: 16px; }
+    .kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); margin-bottom: 16px; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow); padding: 18px; min-width: 0; }
+    .kpihead { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--muted); font-size: 12px; font-weight: 650; }
+    .kpi-value { font-size: 27px; font-weight: 800; margin: 12px 0 7px; }
+    .charts { grid-template-columns: minmax(0, 1.6fr) minmax(280px, 1fr); margin-bottom: 16px; }
+    .chartwrap, .smallchart { height: 270px; position: relative; }
+    .lower { grid-template-columns: minmax(0, 1fr) minmax(260px, .72fr); }
+    .tabletitle { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; }
+    .search { border: 1px solid var(--line); border-radius: 9px; padding: 8px 10px; }
+    .tablewrap { overflow: auto; }
+    table { width: 100%; border-collapse: collapse; white-space: nowrap; }
+    th { font-size: 10px; text-transform: uppercase; color: var(--muted); text-align: left; padding: 11px 9px; border-bottom: 1px solid var(--line); }
+    td { padding: 13px 9px; border-bottom: 1px solid #eef1f6; font-size: 12px; }
+    .orderid { font-weight: 800; color: #1d4ed8; }
+    .status { display: inline-flex; padding: 4px 8px; border-radius: 99px; font-size: 10px; font-weight: 800; }
+    .Success { color: #047857; background: #d1fae5; }
+    .Pending { color: #b45309; background: #fef3c7; }
+    .Cancelled { color: #b91c1c; background: #fee2e2; }
+    .modalback { position: fixed; inset: 0; background: #11182788; display: none; place-items: center; padding: 20px; z-index: 15; }
+    .modal { background: white; border-radius: 18px; padding: 22px; width: min(480px, 100%); }
+    .formgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .formgrid label { display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 700; }
+    .formgrid input, .formgrid select { border: 1px solid var(--line); border-radius: 9px; padding: 10px; }
+    .modalactions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+    @media(max-width: 800px) { .app { grid-template-columns: 1fr; } .kpis, .charts, .lower { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand"><div class="brandmark">✦</div><span>Pulse<span style="color:#67e8f9">BI</span></span></div>
+    <div class="navlabel">WORKSPACE</div>
+    <button class="nav active">▦ <span>Sales overview</span></button>
+    <div class="navlabel">MANAGE</div>
+    <button class="nav" onclick="openModal()">＋ <span>Thêm đơn bán</span></button>
+    <div class="sidebottom">SUPABASE MODE · v0.2<br>Realtime database connected</div>
+  </aside>
+
+  <section class="main">
+    <header class="topbar">
+      <div><h1>Sales Intelligence (Supabase)</h1></div>
+      <div class="live"><span class="dot"></span><span>Live Database</span></div>
+    </header>
+
+    <main class="content">
+      <div class="welcome">
+        <div><h2>Tổng quan dữ liệu kinh doanh</h2><p>Đã kết nối cơ sở dữ liệu Supabase Realtime.</p></div>
+        <div class="filters">
+          <select class="field" id="statusFilter" onchange="fetchOrders()">
+            <option value="all">Tất cả trạng thái</option>
+            <option value="Success">Thành công</option>
+            <option value="Pending">Chờ xử lý</option>
+            <option value="Cancelled">Đã hủy</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid kpis">
+        <article class="card"><div class="kpihead">Doanh thu thuần</div><div class="kpi-value" id="revenue">0 ₫</div></article>
+        <article class="card"><div class="kpihead">Đơn thành công</div><div class="kpi-value" id="ordersCount">0</div></article>
+        <article class="card"><div class="kpihead">Giá trị trung bình/đơn</div><div class="kpi-value" id="aov">0 ₫</div></article>
+        <article class="card"><div class="kpihead">Đơn chờ xử lý</div><div class="kpi-value" id="pendingCount">0</div></article>
+      </div>
+
+      <div class="grid charts">
+        <article class="card">
+          <h3>Xu hướng doanh thu</h3>
+          <div class="chartwrap"><canvas id="revenueChart"></canvas></div>
+        </article>
+        <article class="card">
+          <h3>Phân bổ trạng thái</h3>
+          <div class="smallchart"><canvas id="statusChart"></canvas></div>
+        </article>
+      </div>
+
+      <div class="grid lower">
+        <article class="card">
+          <div class="tabletitle">
+            <h3>Danh sách đơn hàng</h3>
+            <input id="search" class="search" placeholder="Tìm kiếm khách hàng..." oninput="renderTable()">
+          </div>
+          <div class="tablewrap">
+            <table>
+              <thead><tr><th>Mã đơn</th><th>Khách hàng</th><th>Sản phẩm</th><th>Giá trị</th><th>Trạng thái</th></tr></thead>
+              <tbody id="orderRows"></tbody>
+            </table>
+          </div>
+        </article>
+      </div>
+    </main>
+  </section>
+</div>
+
+<div class="modalback" id="modalback">
+  <form class="modal" id="orderForm">
+    <h3>Tạo đơn hàng mới</h3>
+    <div class="formgrid">
+      <label>Khách hàng<input id="customer" required placeholder="Tên khách hàng"></label>
+      <label>Giá trị (₫)<input id="amount" required type="number" min="1000" step="1000" value="500000"></label>
+      <label>Sản phẩm
+        <select id="product">
+          <option>Premium Headphones</option>
+          <option>Smart Watch</option>
+          <option>Wireless Keyboard</option>
+          <option>USB-C Hub</option>
+          <option>Monitor 27-inch</option>
+        </select>
+      </label>
+      <label>Trạng thái
+        <select id="newStatus">
+          <option value="Success">Thành công</option>
+          <option value="Pending">Chờ xử lý</option>
+          <option value="Cancelled">Đã hủy</option>
+        </select>
+      </label>
+    </div>
+    <div class="modalactions">
+      <button type="button" onclick="closeModal()">Hủy</button>
+      <button class="primary" type="submit">Lưu vào Supabase</button>
+    </div>
+  </form>
+</div>
+
+<script>
+  // 1. Cấu hình Supabase (Thay thông tin của bạn vào đây)
+  const SUPABASE_URL = 'https://YOUR_SUPABASE_PROJECT_ID.supabase.co';
+  const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  let orders = [];
+  let revenueChart, statusChart;
+
+  const money = n => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
+
+  async function fetchOrders() {
+    let query = supabaseClient.from('orders').select('*').order('created_at', { ascending: false });
+    const status = document.getElementById('statusFilter').value;
+    if (status !== 'all') query = query.eq('status', status);
+
+    const { data, error } = await query;
+    if (error) {
+      console.error('Lỗi khi tải dữ liệu:', error);
+      return;
+    }
+    orders = data || [];
+    updateDashboard();
+  }
+
+  function updateDashboard() {
+    const successOrders = orders.filter(o => o.status === 'Success');
+    const revenue =

@@ -4,872 +4,1570 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FINOVA | Financial Intelligence Platform</title>
-<meta name="theme-color" content="#102A56">
+<title>FINOVA | Financial Analytics</title>
+<meta name="theme-color" content="#102a56">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://unpkg.com/lucide@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-:root{
+:root {
   --navy:#102A56;
   --blue:#2563EB;
   --blue-light:#EFF5FF;
   --bg:#F6F8FC;
   --white:#FFFFFF;
   --text:#172B4D;
-  --muted:#8492A6;
+  --muted:#8190A5;
   --border:#E8EDF5;
-  --green:#16A37A;
-  --red:#E05260;
-  --orange:#E9A23B;
+  --green:#15966F;
+  --red:#D94F5C;
+  --orange:#D9902F;
   --sidebar:250px;
-  --radius:14px;
 }
-*{box-sizing:border-box}
-body{
+* { box-sizing:border-box; }
+body {
   margin:0;
-  font-family:'Inter',sans-serif;
-  color:var(--text);
+  font-family:Inter,Arial,sans-serif;
   background:var(--bg);
-  font-size:14px;
+  color:var(--text);
+  font-size:13px;
 }
-button,input,select{font:inherit}
-button{cursor:pointer}
-.hidden{display:none!important}
-.muted{color:var(--muted)}
+button,input,select { font:inherit; }
+button { cursor:pointer; }
+.hidden { display:none !important; }
+
 /* LOGIN */
-#loginScreen{
+#loginScreen {
   min-height:100vh;
   display:grid;
-  grid-template-columns:1.05fr .95fr;
+  grid-template-columns:1fr 1fr;
   background:#fff;
 }
-.login-visual{
-  background:linear-gradient(145deg,#102A56 0%,#174A91 55%,#2563EB 100%);
+.login-brand {
+  padding:55px 9%;
   color:white;
-  padding:60px 8%;
+  background:linear-gradient(145deg,#102A56,#174A91 65%,#2563EB);
   display:flex;
   flex-direction:column;
   justify-content:space-between;
   position:relative;
   overflow:hidden;
 }
-.login-visual:before,.login-visual:after{
-  content:"";position:absolute;border:1px solid #ffffff20;
-  border-radius:50%;width:520px;height:520px;right:-180px;top:15%;
+.login-brand:after {
+  content:"";
+  position:absolute;
+  width:520px;height:520px;
+  border:1px solid #ffffff25;
+  border-radius:50%;
+  right:-180px;top:20%;
+  box-shadow:0 0 0 65px #ffffff08,0 0 0 130px #ffffff06;
 }
-.login-visual:after{
-  width:360px;height:360px;right:-100px;top:25%;
+.logo {
+  font-size:22px;
+  font-weight:800;
+  letter-spacing:2px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  position:relative;
+  z-index:1;
 }
-.brand{display:flex;align-items:center;gap:12px;font-weight:800;letter-spacing:1.5px;font-size:21px;position:relative;z-index:1}
-.brand-mark{
-  height:40px;width:40px;border-radius:12px;background:#ffffff20;
-  display:grid;place-items:center;border:1px solid #ffffff35;
+.logo-symbol {
+  width:40px;height:40px;
+  border-radius:12px;
+  background:#ffffff20;
+  border:1px solid #ffffff35;
+  display:grid;place-items:center;
+  font-size:20px;
 }
-.login-copy{max-width:560px;position:relative;z-index:1}
-.login-copy h1{font-size:clamp(34px,4vw,56px);line-height:1.13;letter-spacing:-2px;margin:0 0 22px}
-.login-copy p{font-size:16px;line-height:1.8;color:#D5E4FA;max-width:470px}
-.login-stats{display:flex;gap:35px;margin-top:45px}
-.login-stats strong{display:block;font-size:23px;margin-bottom:5px}
-.login-stats span{color:#C9D9F2;font-size:12px}
-.login-foot{color:#BCD0EF;font-size:11px;letter-spacing:1px;position:relative;z-index:1}
-.login-panel{display:flex;align-items:center;justify-content:center;padding:35px}
-.login-box{width:100%;max-width:420px}
-.login-box h2{font-size:28px;letter-spacing:-.8px;margin:0 0 9px}
-.login-box .sub{color:var(--muted);margin:0 0 35px;line-height:1.7}
-.field{margin-bottom:20px}
-.field label{display:block;font-size:12px;font-weight:700;margin-bottom:9px;color:#42546D}
-.field input{
-  width:100%;height:49px;border:1px solid var(--border);
-  border-radius:10px;padding:0 14px;outline:none;background:#fff;
-  transition:.2s;
+.login-copy { position:relative;z-index:1;max-width:520px; }
+.eyebrow {
+  color:#B9D2F6;
+  font-weight:700;
+  font-size:11px;
+  letter-spacing:2px;
+  margin-bottom:20px;
 }
-.field input:focus{border-color:var(--blue);box-shadow:0 0 0 3px #2563eb14}
-.login-options{display:flex;justify-content:space-between;align-items:center;font-size:12px;margin:5px 0 23px}
-.login-options a{color:var(--blue);text-decoration:none;font-weight:600}
-.primary-btn{
-  border:0;border-radius:10px;background:var(--blue);color:#fff;
-  padding:14px 18px;font-weight:700;width:100%;
-  box-shadow:0 5px 15px #2563eb25;transition:.2s;
+.login-copy h1 {
+  font-size:clamp(35px,4vw,58px);
+  line-height:1.12;
+  letter-spacing:-2px;
+  margin:0 0 22px;
 }
-.primary-btn:hover{background:#174fc4;transform:translateY(-1px)}
-.demo-btn{
-  width:100%;border:1px solid var(--border);background:#fff;
-  color:var(--text);padding:13px;border-radius:10px;margin-top:12px;font-weight:600;
+.login-copy p {
+  color:#D5E4FA;
+  line-height:1.9;
+  font-size:15px;
+  max-width:450px;
 }
-.demo-btn:hover{background:var(--blue-light);border-color:#C9D9F8}
-.login-message{font-size:12px;margin-top:14px;line-height:1.6;color:var(--red)}
-.login-note{font-size:11px;color:var(--muted);margin-top:30px;line-height:1.7}
+.login-bottom {
+  position:relative;z-index:1;
+  color:#C5D7F1;
+  font-size:10px;
+  letter-spacing:1px;
+}
+.login-side {
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:35px;
+}
+.login-form { width:100%;max-width:410px; }
+.login-form .logo { color:var(--navy);margin-bottom:45px; }
+.login-form .logo-symbol { background:var(--blue);color:white;border:0; }
+.login-form h2 { font-size:28px;margin:0 0 9px;letter-spacing:-1px; }
+.login-sub { color:var(--muted);line-height:1.7;margin:0 0 30px; }
+.field { margin-bottom:18px; }
+.field label {
+  display:block;
+  font-size:12px;
+  font-weight:700;
+  margin-bottom:8px;
+}
+.field input,.field select {
+  width:100%;
+  height:47px;
+  padding:0 13px;
+  border:1px solid var(--border);
+  border-radius:9px;
+  outline:none;
+  background:white;
+}
+.field input:focus,.field select:focus {
+  border-color:var(--blue);
+  box-shadow:0 0 0 3px #2563eb15;
+}
+.primary {
+  width:100%;
+  border:0;
+  background:var(--blue);
+  color:white;
+  border-radius:9px;
+  padding:14px;
+  font-weight:700;
+}
+.primary:hover { background:#174FC4; }
+.demo-button {
+  width:100%;
+  border:1px solid var(--border);
+  color:var(--text);
+  background:white;
+  border-radius:9px;
+  padding:13px;
+  margin-top:11px;
+  font-weight:600;
+}
+.demo-button:hover { background:var(--blue-light); }
+.login-disclaimer {
+  margin-top:22px;
+  padding:12px;
+  border-radius:8px;
+  background:#FFF8E9;
+  color:#94651F;
+  font-size:10px;
+  line-height:1.6;
+}
+#loginError { color:var(--red);font-size:11px;margin-top:12px; }
+
 /* APPLICATION */
-#app{min-height:100vh}
-.sidebar{
-  width:var(--sidebar);position:fixed;inset:0 auto 0 0;background:#fff;
-  border-right:1px solid var(--border);z-index:20;display:flex;flex-direction:column;
+#app { min-height:100vh; }
+.sidebar {
+  position:fixed;
+  inset:0 auto 0 0;
+  width:var(--sidebar);
+  background:white;
+  border-right:1px solid var(--border);
+  display:flex;
+  flex-direction:column;
+  z-index:20;
 }
-.sidebar-brand{height:78px;display:flex;align-items:center;padding:0 24px;gap:11px;border-bottom:1px solid var(--border)}
-.sidebar-brand .brand-mark{background:var(--navy);color:white;border:0}
-.sidebar-brand .brand{color:var(--navy);font-size:19px}
-.workspace{padding:17px 20px;border-bottom:1px solid var(--border)}
-.workspace small{font-size:10px;color:var(--muted);font-weight:700;letter-spacing:1px}
-.workspace strong{display:block;margin-top:7px;font-size:13px}
-.nav-wrap{padding:18px 12px;overflow:auto;flex:1}
-.nav-label{font-size:10px;font-weight:800;letter-spacing:1.2px;color:#9AA7B8;padding:0 12px;margin:17px 0 9px}
-.nav-item{
-  height:42px;padding:0 12px;display:flex;align-items:center;gap:12px;
-  border-radius:9px;color:#64748B;text-decoration:none;margin:3px 0;
-  font-size:12px;font-weight:600;cursor:pointer;transition:.15s;
+.side-logo {
+  height:76px;
+  display:flex;
+  align-items:center;
+  gap:11px;
+  padding:0 23px;
+  border-bottom:1px solid var(--border);
+  color:var(--navy);
+  font-size:20px;
+  font-weight:800;
+  letter-spacing:1.5px;
 }
-.nav-item i{width:17px;height:17px}
-.nav-item:hover{background:#F4F7FC;color:var(--blue)}
-.nav-item.active{background:var(--blue-light);color:var(--blue);font-weight:700}
-.nav-badge{margin-left:auto;font-size:10px;background:#FFF2E1;color:#B7791F;padding:3px 7px;border-radius:20px}
-.sidebar-bottom{padding:14px;border-top:1px solid var(--border)}
-.profile-mini{display:flex;align-items:center;gap:10px;padding:8px}
-.avatar{width:36px;height:36px;border-radius:50%;background:#E5EEFF;color:var(--blue);display:grid;place-items:center;font-weight:800}
-.profile-mini strong{font-size:12px;display:block}
-.profile-mini small{font-size:10px;color:var(--muted)}
-.main{margin-left:var(--sidebar);min-height:100vh}
-.topbar{
-  height:76px;background:#fff;border-bottom:1px solid var(--border);
-  padding:0 34px;display:flex;align-items:center;justify-content:space-between;
-  position:sticky;top:0;z-index:10;
+.side-logo .logo-symbol { background:var(--navy);color:white; }
+.workspace {
+  padding:17px 22px;
+  border-bottom:1px solid var(--border);
 }
-.top-left{display:flex;align-items:center;gap:14px}
-.page-heading{font-size:17px;font-weight:800;letter-spacing:-.4px}
-.breadcrumb{font-size:11px;color:var(--muted);margin-top:4px}
-.top-actions{display:flex;align-items:center;gap:12px}
-.search{
-  height:38px;width:220px;border:1px solid var(--border);border-radius:9px;
-  display:flex;align-items:center;gap:8px;padding:0 11px;color:var(--muted);
+.workspace small {
+  color:var(--muted);
+  font-size:9px;
+  letter-spacing:1.3px;
+  font-weight:800;
 }
-.search input{border:0;outline:0;width:100%;font-size:11px}
-.icon-btn{
-  width:38px;height:38px;border:1px solid var(--border);border-radius:9px;
-  background:#fff;color:#64748B;display:grid;place-items:center;position:relative;
+.workspace strong {
+  display:block;
+  margin-top:7px;
+  font-size:12px;
 }
-.dot{width:6px;height:6px;background:#E05260;border-radius:50%;position:absolute;right:8px;top:7px}
-.content{padding:28px 34px 45px;max-width:1700px;margin:auto}
-.page-top{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:24px;gap:20px}
-.page-top h1{font-size:23px;letter-spacing:-.8px;margin:0 0 7px}
-.page-top p{font-size:12px;color:var(--muted);margin:0}
-.page-actions{display:flex;gap:9px}
-.btn-light,.btn-blue{
-  padding:10px 14px;border-radius:9px;font-size:11px;font-weight:700;
-  border:1px solid var(--border);background:#fff;color:#42546D;
+.nav-area { padding:14px 12px;overflow-y:auto;flex:1; }
+.nav-label {
+  padding:15px 11px 7px;
+  color:#9AA7B8;
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:1.3px;
 }
-.btn-blue{background:var(--blue);border-color:var(--blue);color:#fff}
-.btn-light:hover{background:#F5F8FD}
-.btn-blue:hover{background:#174FC4}
-/* KPI */
-.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:18px}
-.kpi{
-  background:#fff;border:1px solid var(--border);border-radius:var(--radius);
-  padding:19px 20px;min-width:0;
+.nav-item {
+  display:flex;
+  gap:11px;
+  align-items:center;
+  min-height:40px;
+  padding:0 11px;
+  margin:3px 0;
+  border-radius:8px;
+  color:#64748B;
+  font-weight:600;
+  font-size:11px;
+  cursor:pointer;
+  user-select:none;
 }
-.kpi-head{display:flex;align-items:center;justify-content:space-between;color:#718096;font-size:11px;font-weight:600}
-.kpi-icon{width:34px;height:34px;border-radius:9px;display:grid;place-items:center}
-.kpi-value{font-size:25px;font-weight:800;letter-spacing:-1px;margin:15px 0 8px}
-.kpi-foot{font-size:10px;color:var(--muted);display:flex;align-items:center;gap:5px}
-.up{color:var(--green);font-weight:700}.down{color:var(--red);font-weight:700}
-.chart-grid{display:grid;grid-template-columns:1.7fr 1fr;gap:16px;margin-bottom:18px}
-.card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:20px;min-width:0}
-.card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:20px}
-.card-title{font-size:13px;font-weight:800}
-.card-sub{font-size:10px;color:var(--muted);margin-top:6px}
-.card select{border:1px solid var(--border);background:#fff;padding:8px 10px;border-radius:7px;color:#64748B;font-size:10px;outline:none}
-.chart-box{height:270px;position:relative}
-.bottom-grid{display:grid;grid-template-columns:1.45fr 1fr;gap:16px}
-.table-wrap{overflow:auto}
-table{width:100%;border-collapse:collapse;white-space:nowrap}
-th{text-align:left;font-size:10px;color:#96A1B1;font-weight:700;padding:12px 10px;border-bottom:1px solid var(--border)}
-td{padding:14px 10px;border-bottom:1px solid #F0F3F8;font-size:11px}
-tr:last-child td{border-bottom:0}
-.status{display:inline-flex;padding:5px 8px;border-radius:20px;font-size:9px;font-weight:700}
-.status.done{background:#E8F7F1;color:#168461}
-.status.pending{background:#FFF5E5;color:#B7791F}
-.status.cancel{background:#FFF0F0;color:#D14A56}
-.transaction-name{font-weight:700}
-.transaction-id{font-size:9px;color:var(--muted);margin-top:4px}
-.activity-list{display:flex;flex-direction:column}
-.activity{display:flex;gap:11px;padding:12px 0;border-bottom:1px solid #F0F3F8}
-.activity:last-child{border:0}
-.activity-icon{width:32px;height:32px;flex-shrink:0;border-radius:9px;display:grid;place-items:center}
-.activity strong{font-size:11px;display:block;margin-bottom:5px}
-.activity p{font-size:10px;color:var(--muted);margin:0;line-height:1.6}
-.activity time{font-size:9px;color:#A4AFBD;display:block;margin-top:5px}
-/* GENERIC MODULE */
-.module-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-.module-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:22px;transition:.2s}
-.module-card:hover{border-color:#BCD0F8;transform:translateY(-2px);box-shadow:0 8px 25px #183d7210}
-.module-card .kpi-icon{margin-bottom:17px}
-.module-card h3{font-size:13px;margin:0 0 8px}
-.module-card p{font-size:11px;color:var(--muted);line-height:1.7;margin:0 0 16px}
-.module-card button{background:var(--blue-light);color:var(--blue);border:0;padding:8px 11px;border-radius:7px;font-size:10px;font-weight:700}
-.notice{
-  background:#EFF5FF;border:1px solid #DCE8FF;border-radius:10px;
-  padding:13px 15px;color:#365D9A;font-size:11px;line-height:1.6;margin-bottom:18px;
+.nav-item:hover { background:#F5F7FB;color:var(--blue); }
+.nav-item.active { background:var(--blue-light);color:var(--blue); }
+.nav-icon {
+  width:18px;
+  text-align:center;
+  font-size:15px;
 }
-.footer{font-size:10px;color:#A3ADBA;text-align:center;padding:28px 0 0}
-.mobile-menu{display:none}
-/* RESPONSIVE */
-@media(max-width:1100px){
-  :root{--sidebar:220px}
-  .content{padding:24px}
-  .topbar{padding:0 24px}
-  .kpi-grid{grid-template-columns:repeat(2,1fr)}
+.side-user {
+  border-top:1px solid var(--border);
+  padding:14px;
+  display:flex;
+  align-items:center;
+  gap:10px;
 }
-@media(max-width:760px){
-  #loginScreen{grid-template-columns:1fr}
-  .login-visual{display:none}
-  .login-panel{min-height:100vh;padding:28px}
-  .sidebar{transform:translateX(-100%);transition:.25s;box-shadow:10px 0 35px #102a5615}
-  .sidebar.open{transform:translateX(0)}
-  .main{margin-left:0}
-  .topbar{height:65px;padding:0 16px}
-  .mobile-menu{display:grid}
-  .search{display:none}
-  .content{padding:22px 15px}
-  .page-top{align-items:flex-start;flex-direction:column}
-  .kpi-grid{gap:10px}
-  .kpi{padding:15px}
-  .kpi-value{font-size:21px}
-  .chart-grid,.bottom-grid{grid-template-columns:1fr}
-  .module-grid{grid-template-columns:1fr}
-  .chart-box{height:240px}
+.avatar {
+  width:35px;height:35px;
+  border-radius:50%;
+  background:#E5EEFF;
+  color:var(--blue);
+  display:grid;place-items:center;
+  font-weight:800;
+  flex-shrink:0;
+}
+.side-user strong { display:block;font-size:11px; }
+.side-user small { color:var(--muted);font-size:9px; }
+.main { margin-left:var(--sidebar);min-height:100vh; }
+.topbar {
+  height:73px;
+  background:white;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 30px;
+  position:sticky;
+  top:0;
+  z-index:10;
+}
+.top-title { font-size:15px;font-weight:800; }
+.crumb { color:var(--muted);font-size:10px;margin-top:5px; }
+.top-right { display:flex;align-items:center;gap:10px; }
+.search-box {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  width:230px;
+  height:37px;
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:0 10px;
+  color:var(--muted);
+}
+.search-box input { border:0;outline:0;width:100%;font-size:11px; }
+.top-button {
+  height:36px;
+  min-width:36px;
+  background:white;
+  border:1px solid var(--border);
+  border-radius:8px;
+  color:#64748B;
+}
+.content { max-width:1600px;margin:auto;padding:27px 30px 45px; }
+.page-head {
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:15px;
+  margin-bottom:21px;
+}
+.page-head h1 { font-size:23px;letter-spacing:-.8px;margin:0 0 7px; }
+.page-head p { color:var(--muted);font-size:11px;margin:0; }
+.actions { display:flex;gap:8px;flex-wrap:wrap; }
+.btn {
+  border:1px solid var(--border);
+  border-radius:8px;
+  background:white;
+  color:#52627A;
+  padding:9px 13px;
+  font-size:10px;
+  font-weight:700;
+}
+.btn:hover { background:#F4F7FC; }
+.btn-blue {
+  background:var(--blue);
+  border-color:var(--blue);
+  color:white;
+}
+.btn-blue:hover { background:#174FC4; }
+.btn-danger { color:var(--red); }
+.notice {
+  padding:12px 14px;
+  background:#EFF5FF;
+  border:1px solid #DCE8FF;
+  border-radius:9px;
+  color:#365D9A;
+  font-size:10px;
+  line-height:1.7;
+  margin-bottom:17px;
+}
+.kpis {
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:14px;
+  margin-bottom:17px;
+}
+.kpi {
+  background:white;
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:18px;
+  min-width:0;
+}
+.kpi-label {
+  color:#718096;
+  font-size:10px;
+  font-weight:600;
+  display:flex;
+  justify-content:space-between;
+  gap:5px;
+}
+.kpi-icon {
+  width:31px;height:31px;
+  display:grid;place-items:center;
+  border-radius:8px;
+  font-size:15px;
+}
+.kpi-value {
+  font-size:24px;
+  letter-spacing:-1px;
+  font-weight:800;
+  margin:13px 0 7px;
+}
+.kpi-foot { color:var(--muted);font-size:9px; }
+.green { color:var(--green);font-weight:700; }
+.red { color:var(--red);font-weight:700; }
+.chart-grid {
+  display:grid;
+  grid-template-columns:1.6fr 1fr;
+  gap:14px;
+  margin-bottom:17px;
+}
+.card {
+  background:white;
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:19px;
+  min-width:0;
+}
+.card-head {
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:10px;
+  margin-bottom:17px;
+}
+.card-title { font-size:12px;font-weight:800; }
+.card-sub { font-size:9px;color:var(--muted);margin-top:5px; }
+.chart-area { height:255px;position:relative; }
+.bottom-grid {
+  display:grid;
+  grid-template-columns:1.4fr 1fr;
+  gap:14px;
+}
+.table-wrap { overflow:auto; }
+table { width:100%;border-collapse:collapse;white-space:nowrap; }
+th {
+  text-align:left;
+  padding:11px 9px;
+  font-size:9px;
+  color:#97A3B2;
+  border-bottom:1px solid var(--border);
+}
+td {
+  padding:13px 9px;
+  font-size:10px;
+  border-bottom:1px solid #F0F3F8;
+}
+tr:last-child td { border-bottom:0; }
+.status {
+  display:inline-block;
+  padding:5px 8px;
+  border-radius:20px;
+  font-size:9px;
+  font-weight:700;
+}
+.status.completed { background:#E8F7F1;color:#168461; }
+.status.pending { background:#FFF5E5;color:#B7791F; }
+.status.cancelled { background:#FFF0F0;color:#D14A56; }
+.activity {
+  display:flex;
+  gap:10px;
+  padding:12px 0;
+  border-bottom:1px solid #F0F3F8;
+}
+.activity:last-child { border:0; }
+.activity-icon {
+  width:31px;height:31px;
+  display:grid;place-items:center;
+  flex-shrink:0;
+  border-radius:8px;
+  background:#EFF5FF;
+}
+.activity strong { font-size:10px;display:block;margin-bottom:4px; }
+.activity p { margin:0;color:var(--muted);font-size:9px;line-height:1.6; }
+.footer {
+  text-align:center;
+  padding:25px 0 0;
+  color:#A2ADBB;
+  font-size:9px;
+}
+
+/* TRANSACTION PAGE */
+.toolbar {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom:14px;
+}
+.toolbar input,.toolbar select {
+  height:36px;
+  border:1px solid var(--border);
+  background:white;
+  border-radius:8px;
+  padding:0 11px;
+  outline:none;
+  font-size:10px;
+}
+.toolbar input { min-width:220px; }
+.amount-positive { color:var(--green);font-weight:700; }
+.amount-negative { color:var(--red);font-weight:700; }
+
+/* MODULES */
+.module-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:14px; }
+.module-card {
+  border:1px solid var(--border);
+  background:white;
+  border-radius:12px;
+  padding:20px;
+}
+.module-card .module-icon {
+  width:36px;height:36px;
+  display:grid;place-items:center;
+  background:var(--blue-light);
+  color:var(--blue);
+  border-radius:9px;
+  font-size:17px;
+  margin-bottom:15px;
+}
+.module-card h3 { margin:0 0 8px;font-size:12px; }
+.module-card p { color:var(--muted);font-size:10px;line-height:1.7;min-height:34px; }
+.module-card button {
+  border:0;
+  border-radius:7px;
+  background:var(--blue-light);
+  color:var(--blue);
+  padding:8px 10px;
+  font-size:9px;
+  font-weight:700;
+}
+
+/* MODAL */
+.modal-backdrop {
+  position:fixed;
+  inset:0;
+  background:#102A5666;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:15px;
+  z-index:50;
+}
+.modal-backdrop.open { display:flex; }
+.modal {
+  width:100%;
+  max-width:480px;
+  background:white;
+  border-radius:14px;
+  padding:23px;
+  box-shadow:0 20px 60px #102A5630;
+}
+.modal-head {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:18px;
+}
+.modal-head h2 { font-size:17px;margin:0; }
+.close {
+  border:0;background:#F2F5F9;
+  width:30px;height:30px;border-radius:7px;
+}
+.form-grid { display:grid;grid-template-columns:1fr 1fr;gap:12px; }
+.form-grid .field { margin-bottom:12px; }
+.form-grid .wide { grid-column:1/-1; }
+.form-actions { display:flex;justify-content:flex-end;gap:8px;margin-top:8px; }
+.toast {
+  position:fixed;
+  bottom:22px;right:22px;
+  background:var(--navy);color:white;
+  padding:12px 16px;
+  border-radius:9px;
+  z-index:100;
+  display:none;
+  box-shadow:0 8px 30px #102A5630;
+  font-size:11px;
+}
+.toast.show { display:block; }
+
+/* MOBILE */
+.mobile-menu { display:none; }
+@media(max-width:1050px) {
+  .kpis { grid-template-columns:repeat(2,1fr); }
+  .content { padding:23px; }
+  .topbar { padding:0 23px; }
+}
+@media(max-width:760px) {
+  #loginScreen { grid-template-columns:1fr; }
+  .login-brand { display:none; }
+  .login-side { min-height:100vh;padding:25px; }
+  .sidebar {
+    transform:translateX(-105%);
+    transition:.25s;
+    box-shadow:10px 0 40px #102A5615;
+  }
+  .sidebar.open { transform:translateX(0); }
+  .main { margin-left:0; }
+  .topbar { height:63px;padding:0 14px; }
+  .mobile-menu { display:inline-block; }
+  .search-box { display:none; }
+  .content { padding:20px 14px; }
+  .page-head { flex-direction:column;align-items:flex-start; }
+  .chart-grid,.bottom-grid { grid-template-columns:1fr; }
+  .module-grid { grid-template-columns:1fr; }
+  .chart-area { height:230px; }
+  .kpi { padding:13px; }
+  .kpi-value { font-size:20px; }
+  .form-grid { grid-template-columns:1fr; }
+  .form-grid .wide { grid-column:auto; }
 }
 </style>
 </head>
 
 <body>
 
-<!-- LOGIN -->
+<!-- LOGIN SCREEN -->
 <section id="loginScreen">
-  <div class="login-visual">
-    <div class="brand">
-      <div class="brand-mark"><i data-lucide="landmark"></i></div>
+  <div class="login-brand">
+    <div class="logo">
+      <div class="logo-symbol">F</div>
       FINOVA
     </div>
 
     <div class="login-copy">
-      <div style="font-size:11px;letter-spacing:2px;color:#B8D1F7;font-weight:700;margin-bottom:20px">
-        FINANCIAL INTELLIGENCE PLATFORM
-      </div>
+      <div class="eyebrow">FINANCIAL INTELLIGENCE PLATFORM</div>
       <h1>Clarity in Finance.<br>Confidence in Decisions.</h1>
       <p>
-        Một không gian quản trị tài chính tập trung.
-        Kết nối dữ liệu kế toán, phân tích hiệu quả và
-        hỗ trợ doanh nghiệp ra quyết định chính xác hơn.
+        A unified financial workspace for smarter accounting,
+        financial visibility and business decisions.
       </p>
-      <div class="login-stats">
-        <div><strong>FINOVA</strong><span>Financial Intelligence</span></div>
-        <div><strong>360°</strong><span>Financial Visibility</span></div>
-      </div>
     </div>
 
-    <div class="login-foot">FINOVA TECHNOLOGY · FINANCIAL ANALYTICS</div>
+    <div class="login-bottom">FINOVA · FINANCIAL ANALYTICS · 2026</div>
   </div>
 
-  <div class="login-panel">
-    <div class="login-box">
-      <div class="brand" style="color:var(--navy);margin-bottom:40px">
-        <div class="brand-mark" style="background:var(--blue);color:white">
-          <i data-lucide="landmark"></i>
-        </div>
+  <div class="login-side">
+    <div class="login-form">
+      <div class="logo">
+        <div class="logo-symbol">F</div>
         FINOVA
       </div>
 
       <h2>Welcome back</h2>
-      <p class="sub">Đăng nhập để truy cập không gian tài chính của bạn.</p>
+      <p class="login-sub">Đăng nhập để truy cập không gian tài chính của bạn.</p>
 
       <form id="loginForm">
         <div class="field">
           <label>Email address</label>
-          <input id="email" type="email" value="tovanghia27225@gmail.com"
-                 placeholder="name@company.com" required autocomplete="username">
+          <input id="loginEmail" type="email"
+                 value="tovanghia27225@gmail.com"
+                 placeholder="name@company.com" required>
         </div>
 
         <div class="field">
           <label>Password</label>
-          <input id="password" type="password" placeholder="Nhập mật khẩu"
-                 required autocomplete="current-password">
+          <input id="loginPassword" type="password"
+                 placeholder="Nhập mật khẩu bất kỳ để thử giao diện" required>
         </div>
 
-        <div class="login-options">
-          <label style="display:flex;align-items:center;gap:7px;color:#64748B">
-            <input type="checkbox" id="remember" checked> Remember me
-          </label>
-          <a href="#" id="forgotPassword">Forgot password?</a>
-        </div>
-
-        <button class="primary-btn" id="loginButton" type="submit">
-          Sign in to FINOVA
-        </button>
+        <button class="primary" type="submit">Sign in to FINOVA</button>
       </form>
 
-      <button class="demo-btn" id="demoButton">
+      <button class="demo-button" id="quickDemo">
         Explore demo dashboard
       </button>
 
-      <div id="loginMessage" class="login-message"></div>
+      <div id="loginError"></div>
 
-      <p class="login-note">
-        Secure access to your financial workspace.<br>
-        Bản demo sử dụng dữ liệu minh họa, không phải dữ liệu kế toán thực tế.
-      </p>
+      <div class="login-disclaimer">
+        <strong>Prototype mode:</strong> Đăng nhập ở bản này chỉ mô phỏng giao diện.
+        Không xác thực tài khoản thật và không gửi mật khẩu đến máy chủ.
+      </div>
     </div>
   </div>
 </section>
 
-<!-- APP -->
+<!-- APPLICATION -->
 <section id="app" class="hidden">
+
   <aside class="sidebar" id="sidebar">
-    <div class="sidebar-brand">
-      <div class="brand-mark"><i data-lucide="landmark"></i></div>
-      <div class="brand">FINOVA</div>
+    <div class="side-logo">
+      <div class="logo-symbol">F</div>
+      FINOVA
     </div>
 
     <div class="workspace">
       <small>WORKSPACE</small>
-      <strong>My Organization <i data-lucide="chevron-down" style="width:13px;vertical-align:middle"></i></strong>
+      <strong>My Organization ▾</strong>
     </div>
 
-    <nav class="nav-wrap">
+    <nav class="nav-area">
       <div class="nav-label">OVERVIEW</div>
-      <a class="nav-item active" data-page="Dashboard"><i data-lucide="layout-dashboard"></i>Dashboard</a>
-      <a class="nav-item" data-page="Financial Analytics"><i data-lucide="chart-no-axes-combined"></i>Financial Analytics</a>
+      <div class="nav-item active" data-page="Dashboard"><span class="nav-icon">▦</span>Dashboard</div>
+      <div class="nav-item" data-page="Financial Analytics"><span class="nav-icon">◫</span>Financial Analytics</div>
 
       <div class="nav-label">ACCOUNTING</div>
-      <a class="nav-item" data-page="Data Center"><i data-lucide="database"></i>Data Center</a>
-      <a class="nav-item" data-page="Chứng từ & Sổ sách"><i data-lucide="file-text"></i>Chứng từ & Sổ sách</a>
-      <a class="nav-item" data-page="Mua hàng & Bán hàng"><i data-lucide="arrow-left-right"></i>Mua hàng & Bán hàng</a>
-      <a class="nav-item" data-page="Tiền & Ngân hàng"><i data-lucide="wallet"></i>Tiền & Ngân hàng</a>
-      <a class="nav-item" data-page="Kho & Giá thành"><i data-lucide="boxes"></i>Kho & Giá thành</a>
-      <a class="nav-item" data-page="Tài sản & Phân bổ"><i data-lucide="building-2"></i>Tài sản & Phân bổ</a>
-      <a class="nav-item" data-page="Tiền lương"><i data-lucide="users"></i>Tiền lương</a>
-      <a class="nav-item" data-page="Thuế & Hóa đơn"><i data-lucide="receipt"></i>Thuế & Hóa đơn</a>
+      <div class="nav-item" data-page="Giao dịch"><span class="nav-icon">▤</span>Giao dịch</div>
+      <div class="nav-item" data-page="Chứng từ & Sổ sách"><span class="nav-icon">▧</span>Chứng từ & Sổ sách</div>
+      <div class="nav-item" data-page="Mua hàng & Bán hàng"><span class="nav-icon">⇄</span>Mua hàng & Bán hàng</div>
+      <div class="nav-item" data-page="Tiền & Ngân hàng"><span class="nav-icon">▣</span>Tiền & Ngân hàng</div>
+      <div class="nav-item" data-page="Kho & Giá thành"><span class="nav-icon">▦</span>Kho & Giá thành</div>
+      <div class="nav-item" data-page="Tài sản & Phân bổ"><span class="nav-icon">▥</span>Tài sản & Phân bổ</div>
+      <div class="nav-item" data-page="Tiền lương"><span class="nav-icon">♙</span>Tiền lương</div>
+      <div class="nav-item" data-page="Thuế & Hóa đơn"><span class="nav-icon">▤</span>Thuế & Hóa đơn</div>
 
       <div class="nav-label">CONTROL & REPORTING</div>
-      <a class="nav-item" data-page="Đối chiếu & Khóa sổ"><i data-lucide="list-checks"></i>Đối chiếu & Khóa sổ</a>
-      <a class="nav-item" data-page="Báo cáo tài chính"><i data-lucide="file-bar-chart"></i>Báo cáo tài chính</a>
-      <a class="nav-item" data-page="Kiểm toán & Kiểm soát"><i data-lucide="shield-check"></i>Kiểm toán & Kiểm soát</a>
+      <div class="nav-item" data-page="Đối chiếu & Khóa sổ"><span class="nav-icon">☑</span>Đối chiếu & Khóa sổ</div>
+      <div class="nav-item" data-page="Báo cáo tài chính"><span class="nav-icon">▥</span>Báo cáo tài chính</div>
+      <div class="nav-item" data-page="Kiểm toán & Kiểm soát"><span class="nav-icon">◇</span>Kiểm toán & Kiểm soát</div>
 
       <div class="nav-label">INTELLIGENCE</div>
-      <a class="nav-item" data-page="Legal Library"><i data-lucide="scale"></i>Legal Library</a>
-      <a class="nav-item" data-page="Rules Engine"><i data-lucide="workflow"></i>Rules Engine</a>
-      <a class="nav-item" data-page="FINOVA AI"><i data-lucide="sparkles"></i>FINOVA AI <span class="nav-badge">AI</span></a>
+      <div class="nav-item" data-page="Legal Library"><span class="nav-icon">⚖</span>Legal Library</div>
+      <div class="nav-item" data-page="Rules Engine"><span class="nav-icon">⌘</span>Rules Engine</div>
+      <div class="nav-item" data-page="FINOVA AI"><span class="nav-icon">✧</span>FINOVA AI</div>
 
       <div class="nav-label">SYSTEM</div>
-      <a class="nav-item" data-page="Thiết lập hệ thống"><i data-lucide="settings"></i>Thiết lập hệ thống</a>
+      <div class="nav-item" data-page="Thiết lập hệ thống"><span class="nav-icon">⚙</span>Thiết lập hệ thống</div>
     </nav>
 
-    <div class="sidebar-bottom">
-      <div class="profile-mini">
-        <div class="avatar">N</div>
-        <div style="min-width:0;flex:1">
-          <strong id="profileName">FINOVA User</strong>
-          <small id="profileEmail">Demo workspace</small>
-        </div>
-        <button class="icon-btn" id="logoutButton" title="Đăng xuất" style="width:31px;height:31px">
-          <i data-lucide="log-out" style="width:15px"></i>
-        </button>
+    <div class="side-user">
+      <div class="avatar">N</div>
+      <div style="flex:1;min-width:0">
+        <strong id="userName">FINOVA User</strong>
+        <small id="userEmail">Demo account</small>
       </div>
+      <button class="top-button" id="logout" title="Đăng xuất">↪</button>
     </div>
   </aside>
 
   <main class="main">
     <header class="topbar">
-      <div class="top-left">
-        <button class="icon-btn mobile-menu" id="mobileMenu"><i data-lucide="menu"></i></button>
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="top-button mobile-menu" id="menuButton">☰</button>
         <div>
-          <div class="page-heading" id="topTitle">Dashboard</div>
-          <div class="breadcrumb">FINOVA / <span id="breadcrumb">Overview</span></div>
+          <div class="top-title" id="topTitle">Dashboard</div>
+          <div class="crumb">FINOVA / <span id="breadcrumb">Overview</span></div>
         </div>
       </div>
 
-      <div class="top-actions">
-        <div class="search">
-          <i data-lucide="search" style="width:15px"></i>
-          <input placeholder="Search anything...">
-          <span style="font-size:9px;border:1px solid #E8EDF5;border-radius:4px;padding:3px 5px">⌘ K</span>
+      <div class="top-right">
+        <div class="search-box">
+          <span>⌕</span>
+          <input id="globalSearch" placeholder="Search transactions...">
         </div>
-        <button class="icon-btn" title="Thông báo"><i data-lucide="bell"></i><span class="dot"></span></button>
-        <button class="icon-btn" title="Trợ giúp"><i data-lucide="circle-help"></i></button>
+        <button class="top-button" id="notificationButton" title="Thông báo">♧</button>
+        <button class="top-button" id="helpButton" title="Trợ giúp">?</button>
         <div class="avatar">N</div>
       </div>
     </header>
 
-    <div class="content" id="pageContent">
-      <!-- DASHBOARD CONTENT -->
-      <div class="page-top">
-        <div>
-          <h1>Financial Overview</h1>
-          <p>The latest financial performance of your organization.</p>
-        </div>
-        <div class="page-actions">
-          <select id="periodSelect" class="btn-light">
-            <option>Tháng 11/2026</option>
-            <option>Tháng 10/2026</option>
-            <option>Quý III/2026</option>
-            <option>Năm 2026</option>
-          </select>
-          <button class="btn-blue" onclick="showToast('Đây là dữ liệu minh họa của bản demo.')">
-            <i data-lucide="download" style="width:13px;vertical-align:middle"></i> Export report
-          </button>
-        </div>
-      </div>
-
-      <div class="notice">
-        <strong>Demo workspace:</strong> Các số liệu tài chính và giao dịch bên dưới chỉ phục vụ minh họa giao diện. Chưa kết nối dữ liệu kế toán thực tế.
-      </div>
-
-      <section class="kpi-grid">
-        <div class="kpi">
-          <div class="kpi-head">Total Revenue <span class="kpi-icon" style="background:#EFF5FF;color:#2563EB"><i data-lucide="trending-up"></i></span></div>
-          <div class="kpi-value">2.85 tỷ</div>
-          <div class="kpi-foot"><span class="up">↑ 12.5%</span> compared to last period</div>
-        </div>
-        <div class="kpi">
-          <div class="kpi-head">Total Expenses <span class="kpi-icon" style="background:#FFF4E8;color:#E69A36"><i data-lucide="wallet"></i></span></div>
-          <div class="kpi-value">1.24 tỷ</div>
-          <div class="kpi-foot"><span class="down">↑ 4.2%</span> compared to last period</div>
-        </div>
-        <div class="kpi">
-          <div class="kpi-head">Net Profit <span class="kpi-icon" style="background:#EAF8F2;color:#16A37A"><i data-lucide="badge-dollar-sign"></i></span></div>
-          <div class="kpi-value">1.61 tỷ</div>
-          <div class="kpi-foot"><span class="up">↑ 18.8%</span> compared to last period</div>
-        </div>
-        <div class="kpi">
-          <div class="kpi-head">Cash Balance <span class="kpi-icon" style="background:#F2EEFF;color:#8264D8"><i data-lucide="landmark"></i></span></div>
-          <div class="kpi-value">3.42 tỷ</div>
-          <div class="kpi-foot"><span class="up">↑ 8.1%</span> compared to last period</div>
-        </div>
-      </section>
-
-      <section class="chart-grid">
-        <div class="card">
-          <div class="card-head">
-            <div>
-              <div class="card-title">Revenue & Expenses</div>
-              <div class="card-sub">Financial performance over time</div>
-            </div>
-            <select id="chartPeriod">
-              <option>Last 6 months</option>
-              <option>Last 12 months</option>
-            </select>
-          </div>
-          <div class="chart-box"><canvas id="financeChart"></canvas></div>
-        </div>
-
-        <div class="card">
-          <div class="card-head">
-            <div>
-              <div class="card-title">Revenue Breakdown</div>
-              <div class="card-sub">Revenue by business segment</div>
-            </div>
-            <button class="btn-light" onclick="showToast('Báo cáo phân tích đang ở chế độ demo.')">Details</button>
-          </div>
-          <div class="chart-box" style="height:220px"><canvas id="revenueChart"></canvas></div>
-          <div style="display:flex;justify-content:center;gap:17px;flex-wrap:wrap;font-size:10px;color:#718096;margin-top:8px">
-            <span>● Products</span><span style="color:#2563EB">● Services</span><span style="color:#8BA9DF">● Other</span>
-          </div>
-        </div>
-      </section>
-
-      <section class="bottom-grid">
-        <div class="card">
-          <div class="card-head">
-            <div>
-              <div class="card-title">Recent Transactions</div>
-              <div class="card-sub">Latest accounting activities</div>
-            </div>
-            <button class="btn-light" onclick="navigate('Chứng từ & Sổ sách')">View all</button>
-          </div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>TRANSACTION</th><th>DATE</th><th>AMOUNT</th><th>STATUS</th></tr></thead>
-              <tbody>
-                <tr>
-                  <td><div class="transaction-name">Customer payment</div><div class="transaction-id">REC-2026-0018</div></td>
-                  <td>01 Nov 2026</td><td style="font-weight:700;color:#168461">+185,000,000</td><td><span class="status done">Completed</span></td>
-                </tr>
-                <tr>
-                  <td><div class="transaction-name">Office expenses</div><div class="transaction-id">PAY-2026-0021</div></td>
-                  <td>01 Nov 2026</td><td style="font-weight:700">-24,500,000</td><td><span class="status done">Completed</span></td>
-                </tr>
-                <tr>
-                  <td><div class="transaction-name">Supplier invoice</div><div class="transaction-id">PUR-2026-0032</div></td>
-                  <td>31 Oct 2026</td><td style="font-weight:700">-86,000,000</td><td><span class="status pending">Pending</span></td>
-                </tr>
-                <tr>
-                  <td><div class="transaction-name">Service revenue</div><div class="transaction-id">SAL-2026-0042</div></td>
-                  <td>30 Oct 2026</td><td style="font-weight:700;color:#168461">+120,000,000</td><td><span class="status done">Completed</span></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-head">
-            <div>
-              <div class="card-title">Business Activities</div>
-              <div class="card-sub">Recent system updates</div>
-            </div>
-            <button class="btn-light" onclick="showToast('Không có hoạt động mới trong bản demo.')">View all</button>
-          </div>
-          <div class="activity-list">
-            <div class="activity">
-              <div class="activity-icon" style="background:#EAF8F2;color:#16A37A"><i data-lucide="check-circle" style="width:16px"></i></div>
-              <div><strong>Payment reconciled</strong><p>Customer payment REC-2026-0018 has been reconciled.</p><time>Today · 09:42 AM</time></div>
-            </div>
-            <div class="activity">
-              <div class="activity-icon" style="background:#EFF5FF;color:#2563EB"><i data-lucide="file-text" style="width:16px"></i></div>
-              <div><strong>New voucher created</strong><p>A new accounting voucher has been recorded.</p><time>Today · 08:30 AM</time></div>
-            </div>
-            <div class="activity">
-              <div class="activity-icon" style="background:#FFF4E8;color:#D58A28"><i data-lucide="clock" style="width:16px"></i></div>
-              <div><strong>Pending approval</strong><p>One supplier invoice is waiting for approval.</p><time>Yesterday · 04:15 PM</time></div>
-            </div>
-            <div class="activity">
-              <div class="activity-icon" style="background:#F2EEFF;color:#8264D8"><i data-lucide="scale" style="width:16px"></i></div>
-              <div><strong>Legal Library updated</strong><p>Legal document information is available for review.</p><time>Yesterday · 02:10 PM</time></div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <div class="footer">© 2026 FINOVA · Financial Intelligence Platform · All rights reserved.</div>
-    </div>
+    <div class="content" id="pageContent"></div>
   </main>
 </section>
 
-<div id="toast" style="position:fixed;bottom:25px;right:25px;background:#102A56;color:white;padding:13px 18px;border-radius:9px;font-size:12px;box-shadow:0 8px 25px #102a5630;z-index:100;display:none"></div>
+<!-- ADD TRANSACTION MODAL -->
+<div class="modal-backdrop" id="transactionModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>Thêm giao dịch</h2>
+      <button class="close" id="closeModal">✕</button>
+    </div>
+
+    <form id="transactionForm">
+      <div class="form-grid">
+        <div class="field">
+          <label>Loại giao dịch</label>
+          <select id="txType" required>
+            <option value="income">Thu tiền / Doanh thu</option>
+            <option value="expense">Chi tiền / Chi phí</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Trạng thái</label>
+          <select id="txStatus" required>
+            <option value="completed">Hoàn thành</option>
+            <option value="pending">Chờ xử lý</option>
+          </select>
+        </div>
+
+        <div class="field wide">
+          <label>Tên giao dịch</label>
+          <input id="txName" placeholder="Ví dụ: Thanh toán khách hàng" required>
+        </div>
+
+        <div class="field">
+          <label>Số tiền (VNĐ)</label>
+          <input id="txAmount" type="number" min="1" step="1000" placeholder="10000000" required>
+        </div>
+
+        <div class="field">
+          <label>Ngày giao dịch</label>
+          <input id="txDate" type="date" required>
+        </div>
+
+        <div class="field wide">
+          <label>Ghi chú</label>
+          <input id="txNote" placeholder="Thông tin bổ sung (không bắt buộc)">
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn" id="cancelModal">Hủy</button>
+        <button type="submit" class="btn btn-blue">Lưu giao dịch</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
 
 <script>
-/* =====================================================
-   FINOVA CONFIGURATION
-   Điền thông tin Supabase của dự án FINOVA tại đây.
-   Chỉ sử dụng Publishable/Anon key ở trình duyệt.
-   KHÔNG BAO GIỜ đưa Service Role Key vào file này.
-===================================================== */
+/* ==================================================
+   FINOVA RAW TEST
+   Dữ liệu demo được lưu trên trình duyệt hiện tại.
+   Không phải hệ thống kế toán hoặc xác thực thật.
+================================================== */
 
-const SUPABASE_URL = "https://tstfirzjyyawnmtyanej.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_f0UkdzFrl3m6VNb6qK11mw_X77N8n4p";
+const STORAGE_KEY = "FINOVA_RAW_TEST_V1";
 
-let supabaseClient = null;
-let demoMode = false;
-let financeChartInstance = null;
-let revenueChartInstance = null;
+const $ = (id) => document.getElementById(id);
 
-const isSupabaseConfigured =
-  SUPABASE_URL.startsWith("https://") &&
-  !SUPABASE_URL.includes("YOUR_") &&
-  SUPABASE_ANON_KEY &&
-  !SUPABASE_ANON_KEY.includes("YOUR_");
+let transactions = [];
+let currentPage = "Dashboard";
+let currentUser = "";
+let financeChart = null;
+let revenueChart = null;
 
-if (isSupabaseConfigured && window.supabase) {
-  supabaseClient = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_ANON_KEY
-  );
+const today = new Date();
+const todayISO = [
+  today.getFullYear(),
+  String(today.getMonth()+1).padStart(2,"0"),
+  String(today.getDate()).padStart(2,"0")
+].join("-");
+
+function seedTransactions() {
+  return [
+    {
+      id:"REC-2026-0018",
+      name:"Customer payment",
+      type:"income",
+      amount:185000000,
+      date:"2026-11-01",
+      status:"completed",
+      note:"Thanh toán khách hàng"
+    },
+    {
+      id:"PAY-2026-0021",
+      name:"Office expenses",
+      type:"expense",
+      amount:24500000,
+      date:"2026-11-01",
+      status:"completed",
+      note:"Chi phí văn phòng"
+    },
+    {
+      id:"PUR-2026-0032",
+      name:"Supplier invoice",
+      type:"expense",
+      amount:86000000,
+      date:"2026-10-31",
+      status:"pending",
+      note:"Hóa đơn nhà cung cấp"
+    },
+    {
+      id:"SAL-2026-0042",
+      name:"Service revenue",
+      type:"income",
+      amount:120000000,
+      date:"2026-10-30",
+      status:"completed",
+      note:"Doanh thu dịch vụ"
+    },
+    {
+      id:"REC-2026-0015",
+      name:"Project payment",
+      type:"income",
+      amount:320000000,
+      date:"2026-10-28",
+      status:"completed",
+      note:"Thanh toán dự án"
+    },
+    {
+      id:"PAY-2026-0019",
+      name:"Marketing expense",
+      type:"expense",
+      amount:58000000,
+      date:"2026-10-26",
+      status:"completed",
+      note:"Chi phí marketing"
+    }
+  ];
 }
 
-function setMessage(message, color) {
-  const el = document.getElementById("loginMessage");
-  el.textContent = message;
-  el.style.color = color || "#E05260";
-}
-
-function showApp(email, isDemo) {
-  demoMode = Boolean(isDemo);
-  document.getElementById("loginScreen").classList.add("hidden");
-  document.getElementById("app").classList.remove("hidden");
-
-  const displayEmail = email || "Demo workspace";
-  document.getElementById("profileEmail").textContent = displayEmail;
-  document.getElementById("profileName").textContent =
-    displayEmail.split("@")[0] || "FINOVA User";
-
-  setTimeout(() => {
-    initCharts();
-    if (window.lucide) lucide.createIcons();
-  }, 100);
-}
-
-function showLogin() {
-  document.getElementById("app").classList.add("hidden");
-  document.getElementById("loginScreen").classList.remove("hidden");
-}
-
-document.getElementById("loginForm").addEventListener("submit", async (event) => {
-  event.preventDefault();
-
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value;
-  const button = document.getElementById("loginButton");
-
-  if (!supabaseClient) {
-    setMessage("Chưa cấu hình Supabase. Hãy điền SUPABASE_URL và SUPABASE_ANON_KEY trong code, hoặc chọn Explore demo dashboard.", "#D58A28");
-    return;
-  }
-
-  button.disabled = true;
-  button.textContent = "Signing in...";
-
+function loadData() {
   try {
-    const { data, error } = await supabaseClient.auth.signInWithPassword({
-      email,
-      password
-    });
-
-    if (error) throw error;
-
-    showApp(data.user?.email || email, false);
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) {
+        transactions = parsed;
+        return;
+      }
+    }
   } catch (error) {
-    setMessage(error.message || "Đăng nhập không thành công.");
-  } finally {
-    button.disabled = false;
-    button.textContent = "Sign in to FINOVA";
+    console.warn("Không thể đọc dữ liệu demo:", error);
   }
-});
 
-document.getElementById("demoButton").addEventListener("click", () => {
-  document.getElementById("password").value = "";
-  showApp("Demo workspace", true);
-});
+  transactions = seedTransactions();
+  saveData();
+}
 
-document.getElementById("forgotPassword").addEventListener("click", async (event) => {
+function saveData() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(transactions));
+  } catch (error) {
+    toast("Không thể lưu dữ liệu trong trình duyệt.");
+  }
+}
+
+function money(value) {
+  return new Intl.NumberFormat("vi-VN", {
+    maximumFractionDigits:0
+  }).format(value) + " ₫";
+}
+
+function compactMoney(value) {
+  if (Math.abs(value) >= 1000000000) {
+    return (value / 1000000000).toFixed(2) + " tỷ";
+  }
+  if (Math.abs(value) >= 1000000) {
+    return (value / 1000000).toFixed(1) + " tr";
+  }
+  return money(value);
+}
+
+function formatDate(date) {
+  if (!date) return "—";
+  const parts = date.split("-");
+  if (parts.length !== 3) return date;
+  return `${parts[2]}/${parts[1]}/${parts[0]}`;
+}
+
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&":"&amp;",
+    "<":"&lt;",
+    ">":"&gt;",
+    '"':"&quot;",
+    "'":"&#039;"
+  })[char]);
+}
+
+function totals() {
+  const completed = transactions.filter(t => t.status === "completed");
+  const income = completed
+    .filter(t => t.type === "income")
+    .reduce((sum,t) => sum + Number(t.amount),0);
+
+  const expense = completed
+    .filter(t => t.type === "expense")
+    .reduce((sum,t) => sum + Number(t.amount),0);
+
+  return {
+    income,
+    expense,
+    profit:income-expense,
+    cash:3000000000+income-expense,
+    completed:completed.length,
+    pending:transactions.filter(t => t.status === "pending").length
+  };
+}
+
+/* LOGIN DEMO */
+function enterDemo(email) {
+  currentUser = email || "Demo workspace";
+  $("userEmail").textContent = currentUser;
+  $("userName").textContent = currentUser.split("@")[0] || "FINOVA User";
+
+  $("loginScreen").classList.add("hidden");
+  $("app").classList.remove("hidden");
+
+  loadData();
+  navigate("Dashboard");
+}
+
+$("loginForm").addEventListener("submit", function(event) {
   event.preventDefault();
 
-  const email = document.getElementById("email").value.trim();
+  const email = $("loginEmail").value.trim();
+  const password = $("loginPassword").value;
 
-  if (!email) {
-    setMessage("Vui lòng nhập email trước.");
+  if (!email || !password) {
+    $("loginError").textContent = "Vui lòng nhập email và mật khẩu.";
     return;
   }
 
-  if (!supabaseClient) {
-    setMessage("Cần cấu hình Supabase trước khi sử dụng chức năng khôi phục mật khẩu.", "#D58A28");
-    return;
-  }
+  $("loginError").textContent =
+    "Đây là đăng nhập mô phỏng, chưa xác thực tài khoản thật.";
 
-  const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-    redirectTo: window.location.origin
-  });
-
-  if (error) setMessage(error.message);
-  else setMessage("Đã gửi hướng dẫn khôi phục mật khẩu đến email của bạn.", "#168461");
+  enterDemo(email);
 });
 
-document.getElementById("logoutButton").addEventListener("click", async () => {
-  if (!demoMode && supabaseClient) {
-    await supabaseClient.auth.signOut();
-  }
-  demoMode = false;
-  showLogin();
+$("quickDemo").addEventListener("click", function() {
+  enterDemo("Demo workspace");
 });
 
-document.getElementById("mobileMenu").addEventListener("click", () => {
-  document.getElementById("sidebar").classList.toggle("open");
+$("logout").addEventListener("click", function() {
+  $("app").classList.add("hidden");
+  $("loginScreen").classList.remove("hidden");
+  $("loginPassword").value = "";
+  currentUser = "";
 });
 
-function initCharts() {
-  const financeCanvas = document.getElementById("financeChart");
-  const revenueCanvas = document.getElementById("revenueChart");
-  if (!financeCanvas || !revenueCanvas || !window.Chart) return;
-
-  if (financeChartInstance) financeChartInstance.destroy();
-  if (revenueChartInstance) revenueChartInstance.destroy();
-
-  financeChartInstance = new Chart(financeCanvas, {
-    type: "line",
-    data: {
-      labels: ["Jun", "Jul", "Aug", "Sep", "Oct", "Nov"],
-      datasets: [
-        {
-          label: "Revenue",
-          data: [1.6, 1.85, 1.7, 2.1, 2.45, 2.85],
-          borderColor: "#2563EB",
-          backgroundColor: "rgba(37,99,235,.08)",
-          fill: true,
-          tension: .38,
-          borderWidth: 2.5,
-          pointRadius: 3,
-          pointBackgroundColor: "#2563EB"
-        },
-        {
-          label: "Expenses",
-          data: [1.1, 1.18, 1.23, 1.15, 1.3, 1.24],
-          borderColor: "#9BB3D8",
-          backgroundColor: "rgba(155,179,216,.05)",
-          fill: true,
-          tension: .38,
-          borderWidth: 2,
-          pointRadius: 3,
-          pointBackgroundColor: "#9BB3D8"
-        }
-      ]
-    },
-    options: {
-      maintainAspectRatio: false,
-      interaction: { mode: "index", intersect: false },
-      plugins: {
-        legend: {
-          position: "top",
-          align: "end",
-          labels: { usePointStyle: true, boxWidth: 7, boxHeight: 7, font: { size: 10, family: "Inter" } }
-        }
-      },
-      scales: {
-        x: { grid: { display: false }, ticks: { color: "#8A98AA", font: { size: 10 } } },
-        y: {
-          beginAtZero: true,
-          grid: { color: "#F0F3F8" },
-          ticks: { color: "#8A98AA", font: { size: 10 }, callback: value => value + "B" }
-        }
-      }
-    }
-  });
-
-  revenueChartInstance = new Chart(revenueCanvas, {
-    type: "doughnut",
-    data: {
-      labels: ["Products", "Services", "Other"],
-      datasets: [{
-        data: [55, 30, 15],
-        backgroundColor: ["#2563EB", "#8BA9DF", "#D9E5F7"],
-        borderWidth: 0,
-        hoverOffset: 5
-      }]
-    },
-    options: {
-      maintainAspectRatio: false,
-      cutout: "75%",
-      plugins: {
-        legend: { display: false }
-      }
-    }
-  });
-}
-
-function navigate(page) {
-  document.querySelectorAll(".nav-item").forEach(item => {
-    item.classList.toggle("active", item.dataset.page === page);
-  });
-
-  document.getElementById("topTitle").textContent = page;
-  document.getElementById("breadcrumb").textContent = page;
-
-  const content = document.getElementById("pageContent");
-
-  if (page === "Dashboard" || page === "Financial Analytics") {
-    content.innerHTML = `
-      <div class="page-top">
-        <div>
-          <h1>Financial Overview</h1>
-          <p>Financial performance and analytics overview.</p>
-        </div>
-        <div class="page-actions">
-          <select class="btn-light"><option>Tháng 11/2026</option><option>Tháng 10/2026</option></select>
-          <button class="btn-blue" onclick="showToast('Đây là dữ liệu demo.')">Export report</button>
-        </div>
-      </div>
-      <div class="notice"><strong>Demo workspace:</strong> Số liệu được dùng để minh họa giao diện.</div>
-      <section class="kpi-grid">
-        ${kpiCard("Total Revenue","2.85 tỷ","↑ 12.5%","trending-up","#EFF5FF","#2563EB")}
-        ${kpiCard("Total Expenses","1.24 tỷ","↑ 4.2%","wallet","#FFF4E8","#E69A36")}
-        ${kpiCard("Net Profit","1.61 tỷ","↑ 18.8%","badge-dollar-sign","#EAF8F2","#16A37A")}
-        ${kpiCard("Cash Balance","3.42 tỷ","↑ 8.1%","landmark","#F2EEFF","#8264D8")}
-      </section>
-      <section class="chart-grid">
-        <div class="card"><div class="card-head"><div><div class="card-title">Revenue & Expenses</div><div class="card-sub">Financial performance over time</div></div></div><div class="chart-box"><canvas id="financeChart"></canvas></div></div>
-        <div class="card"><div class="card-head"><div><div class="card-title">Revenue Breakdown</div><div class="card-sub">Revenue by business segment</div></div></div><div class="chart-box"><canvas id="revenueChart"></canvas></div></div>
-      </section>
-      <div class="card"><div class="card-title">Financial Intelligence</div><p class="card-sub">Theo dõi doanh thu, chi phí, lợi nhuận, dòng tiền và công nợ trên cùng một nền tảng.</p></div>
-      <div class="footer">© 2026 FINOVA · Financial Intelligence Platform</div>
-    `;
-    setTimeout(initCharts, 80);
-  } else {
-    const modules = {
-      "Data Center": ["Master Data","Quản lý danh mục khách hàng, nhà cung cấp, hàng hóa và tài khoản kế toán.","database"],
-      "Chứng từ & Sổ sách": ["Accounting Documents","Quản lý chứng từ, định khoản, sổ nhật ký chung và sổ cái.","file-text"],
-      "Mua hàng & Bán hàng": ["Purchasing & Sales","Quản lý quy trình mua hàng, bán hàng, hóa đơn và công nợ.","arrow-left-right"],
-      "Tiền & Ngân hàng": ["Cash & Banking","Theo dõi thu chi, tiền mặt, tài khoản ngân hàng và đối chiếu.","wallet"],
-      "Kho & Giá thành": ["Inventory & Costing","Theo dõi nhập xuất tồn, phương pháp tính giá xuất kho và giá thành.","boxes"],
-      "Tài sản & Phân bổ": ["Fixed Assets","Quản lý tài sản cố định, khấu hao và công cụ dụng cụ.","building-2"],
-      "Tiền lương": ["Payroll Management","Quản lý bảng lương, chi phí nhân công và các khoản phải trả.","users"],
-      "Thuế & Hóa đơn": ["Tax & Invoicing","Quản lý dữ liệu thuế, hóa đơn và nghĩa vụ kê khai.","receipt"],
-      "Đối chiếu & Khóa sổ": ["Reconciliation & Closing","Đối chiếu số liệu và kiểm soát quy trình khóa sổ kế toán.","list-checks"],
-      "Báo cáo tài chính": ["Financial Reporting","Tập hợp dữ liệu và xây dựng báo cáo tài chính theo chế độ áp dụng.","file-bar-chart"],
-      "Kiểm toán & Kiểm soát": ["Audit & Internal Control","Theo dõi nhật ký hệ thống, kiểm soát và lịch sử phê duyệt.","shield-check"],
-      "Legal Library": ["Legal Intelligence Library","Thư viện văn bản pháp luật, hiệu lực, phạm vi áp dụng và lịch sử cập nhật.","scale"],
-      "Rules Engine": ["Accounting Rules Engine","Quản lý bộ quy tắc kế toán theo chế độ, đối tượng và thời điểm hiệu lực.","workflow"],
-      "FINOVA AI": ["FINOVA AI Assistant","Không gian hỗ trợ phân tích dữ liệu và tra cứu nghiệp vụ kế toán.","sparkles"],
-      "Thiết lập hệ thống": ["System Settings","Cấu hình doanh nghiệp, người dùng, phân quyền và kỳ kế toán.","settings"]
-    };
-
-    const info = modules[page] || ["Workspace", "Không gian quản lý nghiệp vụ.", "layers"];
-
-    content.innerHTML = `
-      <div class="page-top">
-        <div><h1>${info[0]}</h1><p>${info[1]}</p></div>
-        <div class="page-actions"><button class="btn-light" onclick="showToast('Tính năng đang ở giai đoạn thiết kế.')">Documentation</button><button class="btn-blue" onclick="showToast('Module demo: chưa kết nối nghiệp vụ backend.')">Create new</button></div>
-      </div>
-      <div class="notice"><strong>Workspace preview:</strong> Đây là giao diện module minh họa. Chức năng lưu dữ liệu, xử lý kế toán và phân quyền cần được kết nối backend Supabase.</div>
-      <div class="module-grid">
-        <div class="module-card"><div class="kpi-icon" style="background:#EFF5FF;color:#2563EB"><i data-lucide="${info[2]}"></i></div><h3>${info[0]}</h3><p>${info[1]}</p><button onclick="showToast('Chức năng đang được xây dựng.')">Open workspace →</button></div>
-        <div class="module-card"><div class="kpi-icon" style="background:#EAF8F2;color:#16A37A"><i data-lucide="chart-no-axes-combined"></i></div><h3>Analytics & Reports</h3><p>Theo dõi số liệu, báo cáo và các chỉ số quan trọng.</p><button onclick="showToast('Chức năng đang được xây dựng.')">View reports →</button></div>
-        <div class="module-card"><div class="kpi-icon" style="background:#FFF4E8;color:#D58A28"><i data-lucide="shield-check"></i></div><h3>Control Center</h3><p>Kiểm soát hoạt động, trạng thái xử lý và nhật ký nghiệp vụ.</p><button onclick="showToast('Chức năng đang được xây dựng.')">View controls →</button></div>
-      </div>
-      <div class="card" style="margin-top:18px">
-        <div class="card-title">Module information</div>
-        <p class="card-sub">Module đã được bố trí trong giao diện FINOVA. Cần xây dựng bảng dữ liệu, nghiệp vụ và chính sách bảo mật tương ứng trước khi sử dụng dữ liệu thật.</p>
-      </div>
-      <div class="footer">© 2026 FINOVA · Financial Intelligence Platform</div>
-    `;
-    if (window.lucide) lucide.createIcons();
-  }
-
-  document.getElementById("sidebar").classList.remove("open");
-}
-
-function kpiCard(title, value, trend, icon, bg, color) {
-  return `<div class="kpi"><div class="kpi-head">${title}<span class="kpi-icon" style="background:${bg};color:${color}"><i data-lucide="${icon}"></i></span></div><div class="kpi-value">${value}</div><div class="kpi-foot"><span class="up">${trend}</span> compared to last period</div></div>`;
-}
-
+/* NAVIGATION */
 document.querySelectorAll(".nav-item").forEach(item => {
   item.addEventListener("click", () => navigate(item.dataset.page));
 });
 
-let toastTimer;
-function showToast(message) {
-  const toast = document.getElementById("toast");
-  toast.textContent = message;
-  toast.style.display = "block";
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => toast.style.display = "none", 3200);
-}
+function navigate(page) {
+  currentPage = page;
 
-async function checkExistingSession() {
-  if (!supabaseClient) return;
+  document.querySelectorAll(".nav-item").forEach(item => {
+    item.classList.toggle("active",item.dataset.page === page);
+  });
 
-  try {
-    const { data } = await supabaseClient.auth.getSession();
-    if (data.session) {
-      showApp(data.session.user.email, false);
-    }
-  } catch (error) {
-    console.error("Session check failed:", error);
+  $("topTitle").textContent = page;
+  $("breadcrumb").textContent = page;
+
+  if (page === "Dashboard" || page === "Financial Analytics") {
+    renderDashboard();
+  } else if (page === "Giao dịch") {
+    renderTransactions();
+  } else {
+    renderModule(page);
   }
+
+  $("sidebar").classList.remove("open");
 }
 
-if (window.lucide) lucide.createIcons();
-checkExistingSession();
+$("menuButton").addEventListener("click", () => {
+  $("sidebar").classList.toggle("open");
+});
+
+$("helpButton").addEventListener("click", () => {
+  toast("FINOVA Raw Test · Bản thử nghiệm frontend.");
+});
+
+$("notificationButton").addEventListener("click", () => {
+  toast("Bạn đang sử dụng dữ liệu demo.");
+});
+
+/* DASHBOARD */
+function renderDashboard() {
+  const t = totals();
+
+  $("pageContent").innerHTML = `
+    <div class="page-head">
+      <div>
+        <h1>Financial Overview</h1>
+        <p>The latest financial performance of your organization.</p>
+      </div>
+      <div class="actions">
+        <button class="btn" onclick="resetDemoData()">Reset demo data</button>
+        <button class="btn btn-blue" onclick="exportCSV()">↓ Export CSV</button>
+      </div>
+    </div>
+
+    <div class="notice">
+      <strong>Prototype workspace:</strong>
+      Số liệu được lưu trên trình duyệt. Đây không phải dữ liệu kế toán đã được kiểm toán hoặc ghi sổ chính thức.
+    </div>
+
+    <section class="kpis">
+      <div class="kpi">
+        <div class="kpi-label">
+          Total Revenue
+          <span class="kpi-icon" style="background:#EFF5FF;color:#2563EB">↗</span>
+        </div>
+        <div class="kpi-value">${compactMoney(t.income)}</div>
+        <div class="kpi-foot">Tổng giao dịch thu đã hoàn thành</div>
+      </div>
+
+      <div class="kpi">
+        <div class="kpi-label">
+          Total Expenses
+          <span class="kpi-icon" style="background:#FFF4E8;color:#D9902F">↘</span>
+        </div>
+        <div class="kpi-value">${compactMoney(t.expense)}</div>
+        <div class="kpi-foot">Tổng giao dịch chi đã hoàn thành</div>
+      </div>
+
+      <div class="kpi">
+        <div class="kpi-label">
+          Net Movement
+          <span class="kpi-icon" style="background:#EAF8F2;color:#15966F">◈</span>
+        </div>
+        <div class="kpi-value">${compactMoney(t.profit)}</div>
+        <div class="kpi-foot">Thu trừ chi trong dữ liệu demo</div>
+      </div>
+
+      <div class="kpi">
+        <div class="kpi-label">
+          Demo Cash Balance
+          <span class="kpi-icon" style="background:#F2EEFF;color:#8264D8">▣</span>
+        </div>
+        <div class="kpi-value">${compactMoney(t.cash)}</div>
+        <div class="kpi-foot">Số dư giả định ban đầu + biến động thu chi</div>
+      </div>
+    </section>
+
+    <section class="chart-grid">
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">Revenue & Expenses</div>
+            <div class="card-sub">Demo trend · Last 6 months</div>
+          </div>
+          <span class="status completed">LIVE DEMO</span>
+        </div>
+        <div class="chart-area"><canvas id="financeChart"></canvas></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">Transaction Mix</div>
+            <div class="card-sub">Phân bổ theo loại giao dịch</div>
+          </div>
+        </div>
+        <div class="chart-area"><canvas id="revenueChart"></canvas></div>
+        <div class="card-sub" style="text-align:center">
+          ${t.completed} giao dịch hoàn thành · ${t.pending} giao dịch đang chờ
+        </div>
+      </div>
+    </section>
+
+    <section class="bottom-grid">
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">Recent Transactions</div>
+            <div class="card-sub">Các giao dịch mới nhất</div>
+          </div>
+          <button class="btn" onclick="navigate('Giao dịch')">View all →</button>
+        </div>
+        <div class="table-wrap">
+          ${transactionTable(transactions.slice().sort((a,b) => b.date.localeCompare(a.date)).slice(0,5),false)}
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">Workspace Activity</div>
+            <div class="card-sub">Trạng thái dữ liệu demo</div>
+          </div>
+        </div>
+
+        <div class="activity">
+          <div class="activity-icon">✓</div>
+          <div><strong>Local storage active</strong><p>Dữ liệu được lưu trong trình duyệt hiện tại.</p></div>
+        </div>
+
+        <div class="activity">
+          <div class="activity-icon">▤</div>
+          <div><strong>${transactions.length} transactions</strong><p>Số lượng giao dịch đang có trong bản demo.</p></div>
+        </div>
+
+        <div class="activity">
+          <div class="activity-icon">◈</div>
+          <div><strong>Charts refreshed</strong><p>Biểu đồ lấy dữ liệu từ danh sách giao dịch demo.</p></div>
+        </div>
+
+        <div class="activity">
+          <div class="activity-icon">⚑</div>
+          <div><strong>Backend not connected</strong><p>Chưa có đồng bộ với Supabase.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer">© 2026 FINOVA · Financial Intelligence Platform · Raw Test</div>
+  `;
+
+  renderCharts();
+}
+
+function renderCharts() {
+  if (typeof Chart === "undefined") return;
+
+  const income = totals().income;
+  const expense = totals().expense;
+
+  const ctx1 = $("financeChart");
+  const ctx2 = $("revenueChart");
+  if (!ctx1 || !ctx2) return;
+
+  if (financeChart) financeChart.destroy();
+  if (revenueChart) revenueChart.destroy();
+
+  financeChart = new Chart(ctx1,{
+    type:"line",
+    data:{
+      labels:["Jun","Jul","Aug","Sep","Oct","Nov"],
+      datasets:[
+        {
+          label:"Revenue",
+          data:[1.2,1.45,1.35,1.8,2.15,Math.max(0.2,income/1000000000)],
+          borderColor:"#2563EB",
+          backgroundColor:"rgba(37,99,235,.08)",
+          fill:true,
+          tension:.38,
+          borderWidth:2.5,
+          pointRadius:3
+        },
+        {
+          label:"Expenses",
+          data:[.75,.9,.86,1.0,1.1,Math.max(.1,expense/1000000000)],
+          borderColor:"#9BB3D8",
+          backgroundColor:"rgba(155,179,216,.06)",
+          fill:true,
+          tension:.38,
+          borderWidth:2,
+          pointRadius:3
+        }
+      ]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{
+          position:"top",
+          align:"end",
+          labels:{usePointStyle:true,boxWidth:7,font:{size:10}}
+        }
+      },
+      scales:{
+        x:{grid:{display:false},ticks:{font:{size:9},color:"#8A98AA"}},
+        y:{
+          beginAtZero:true,
+          grid:{color:"#F0F3F8"},
+          ticks:{font:{size:9},color:"#8A98AA",callback:v=>v+"B"}
+        }
+      }
+    }
+  });
+
+  revenueChart = new Chart(ctx2,{
+    type:"doughnut",
+    data:{
+      labels:["Revenue","Expenses"],
+      datasets:[{
+        data:[Math.max(income,1),Math.max(expense,1)],
+        backgroundColor:["#2563EB","#BDD0ED"],
+        borderWidth:0,
+        hoverOffset:5
+      }]
+    },
+    options:{
+      maintainAspectRatio:false,
+      cutout:"72%",
+      plugins:{
+        legend:{
+          position:"bottom",
+          labels:{usePointStyle:true,boxWidth:8,padding:18,font:{size:10}}
+        }
+      }
+    }
+  });
+}
+
+/* TRANSACTION TABLE */
+function transactionTable(items,showActions) {
+  if (!items.length) {
+    return `<p style="padding:20px;color:#8190A5;font-size:11px">Chưa có giao dịch nào.</p>`;
+  }
+
+  return `
+    <table>
+      <thead>
+        <tr>
+          <th>TRANSACTION</th>
+          <th>DATE</th>
+          <th>AMOUNT</th>
+          <th>STATUS</th>
+          ${showActions ? "<th>ACTION</th>" : ""}
+        </tr>
+      </thead>
+      <tbody>
+        ${items.map(t => `
+          <tr>
+            <td>
+              <strong>${escapeHTML(t.name)}</strong>
+              <div style="font-size:9px;color:#8190A5;margin-top:4px">${escapeHTML(t.id)}</div>
+            </td>
+            <td>${formatDate(t.date)}</td>
+            <td class="${t.type === "income" ? "amount-positive":"amount-negative"}">
+              ${t.type === "income" ? "+":"−"}${money(t.amount)}
+            </td>
+            <td><span class="status ${t.status}">${statusLabel(t.status)}</span></td>
+            ${showActions ? `
+              <td>
+                <button class="btn btn-danger" onclick="deleteTransaction('${escapeHTML(t.id)}')">Xóa</button>
+              </td>
+            ` : ""}
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+function statusLabel(status) {
+  if (status === "completed") return "Hoàn thành";
+  if (status === "pending") return "Chờ xử lý";
+  return "Đã hủy";
+}
+
+/* TRANSACTION PAGE */
+function renderTransactions() {
+  $("pageContent").innerHTML = `
+    <div class="page-head">
+      <div>
+        <h1>Giao dịch</h1>
+        <p>Quản lý dữ liệu thu chi thử nghiệm trong FINOVA.</p>
+      </div>
+      <div class="actions">
+        <button class="btn" onclick="exportCSV()">↓ Export CSV</button>
+        <button class="btn btn-blue" onclick="openModal()">＋ Thêm giao dịch</button>
+      </div>
+    </div>
+
+    <div class="notice">
+      Giao dịch ở đây chỉ là dữ liệu demo, chưa tạo bút toán Nợ/Có và chưa được ghi nhận vào sổ kế toán.
+    </div>
+
+    <div class="card">
+      <div class="toolbar">
+        <input id="transactionSearch" placeholder="Tìm tên giao dịch hoặc mã...">
+        <select id="transactionTypeFilter">
+          <option value="all">Tất cả loại</option>
+          <option value="income">Khoản thu</option>
+          <option value="expense">Khoản chi</option>
+        </select>
+        <select id="transactionStatusFilter">
+          <option value="all">Tất cả trạng thái</option>
+          <option value="completed">Hoàn thành</option>
+          <option value="pending">Chờ xử lý</option>
+          <option value="cancelled">Đã hủy</option>
+        </select>
+      </div>
+
+      <div class="table-wrap" id="transactionTable"></div>
+      <div id="transactionCount" class="card-sub" style="margin-top:15px"></div>
+    </div>
+  `;
+
+  $("transactionSearch").addEventListener("input",filterTransactions);
+  $("transactionTypeFilter").addEventListener("change",filterTransactions);
+  $("transactionStatusFilter").addEventListener("change",filterTransactions);
+
+  filterTransactions();
+}
+
+function filterTransactions() {
+  const search = $("transactionSearch")?.value.toLowerCase() || "";
+  const type = $("transactionTypeFilter")?.value || "all";
+  const status = $("transactionStatusFilter")?.value || "all";
+
+  const filtered = transactions.filter(t => {
+    const matchesSearch =
+      t.name.toLowerCase().includes(search) ||
+      t.id.toLowerCase().includes(search);
+
+    const matchesType = type === "all" || t.type === type;
+    const matchesStatus = status === "all" || t.status === status;
+
+    return matchesSearch && matchesType && matchesStatus;
+  });
+
+  $("transactionTable").innerHTML = transactionTable(filtered,true);
+  $("transactionCount").textContent =
+    `Hiển thị ${filtered.length} / ${transactions.length} giao dịch`;
+}
+
+/* ADD TRANSACTION */
+function openModal() {
+  $("transactionModal").classList.add("open");
+  $("txDate").value = todayISO;
+  $("txName").focus();
+}
+
+function closeModal() {
+  $("transactionModal").classList.remove("open");
+}
+
+$("closeModal").addEventListener("click",closeModal);
+$("cancelModal").addEventListener("click",closeModal);
+
+$("transactionModal").addEventListener("click",event => {
+  if (event.target === $("transactionModal")) closeModal();
+});
+
+$("transactionForm").addEventListener("submit",event => {
+  event.preventDefault();
+
+  const name = $("txName").value.trim();
+  const amount = Number($("txAmount").value);
+  const type = $("txType").value;
+  const status = $("txStatus").value;
+  const date = $("txDate").value;
+
+  if (!name || !Number.isFinite(amount) || amount <= 0 || !date) {
+    toast("Vui lòng kiểm tra lại thông tin giao dịch.");
+    return;
+  }
+
+  const prefix = type === "income" ? "REC" : "PAY";
+  const id = `${prefix}-${Date.now()}`;
+
+  transactions.unshift({
+    id,
+    name,
+    type,
+    amount,
+    date,
+    status,
+    note:$("txNote").value.trim()
+  });
+
+  saveData();
+  closeModal();
+  $("transactionForm").reset();
+
+  if (currentPage === "Giao dịch") {
+    renderTransactions();
+  } else {
+    navigate("Dashboard");
+  }
+
+  toast("Đã thêm giao dịch vào dữ liệu demo.");
+});
+
+function deleteTransaction(id) {
+  const item = transactions.find(t => t.id === id);
+  if (!item) return;
+
+  if (!confirm(`Bạn muốn xóa giao dịch "${item.name}" khỏi bản demo?`)) return;
+
+  transactions = transactions.filter(t => t.id !== id);
+  saveData();
+
+  if (currentPage === "Giao dịch") renderTransactions();
+  else navigate("Dashboard");
+
+  toast("Đã xóa giao dịch demo.");
+}
+
+/* EXPORT CSV */
+function exportCSV() {
+  const headers = ["ID","Name","Type","Amount","Date","Status","Note"];
+
+  const rows = transactions.map(t => [
+    t.id,
+    t.name,
+    t.type,
+    t.amount,
+    t.date,
+    t.status,
+    t.note || ""
+  ]);
+
+  const csv = [headers,...rows]
+    .map(row => row.map(value =>
+      `"${String(value ?? "").replace(/"/g,'""')}"`
+    ).join(","))
+    .join("\r\n");
+
+  const blob = new Blob(["\uFEFF"+csv],{
+    type:"text/csv;charset=utf-8;"
+  });
+
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+
+  a.href = url;
+  a.download = "FINOVA_Demo_Transactions.csv";
+  a.click();
+
+  URL.revokeObjectURL(url);
+  toast("Đã xuất file CSV.");
+}
+
+/* RESET */
+function resetDemoData() {
+  if (!confirm("Đưa dữ liệu demo về trạng thái ban đầu?")) return;
+
+  transactions = seedTransactions();
+  saveData();
+
+  if (currentPage === "Giao dịch") renderTransactions();
+  else renderDashboard();
+
+  toast("Đã khôi phục dữ liệu demo.");
+}
+
+/* OTHER MODULES */
+const moduleData = {
+  "Chứng từ & Sổ sách":["Accounting Documents","Quản lý chứng từ và sổ sách kế toán.","▤"],
+  "Mua hàng & Bán hàng":["Purchasing & Sales","Quản lý quy trình mua hàng, bán hàng và hóa đơn.","⇄"],
+  "Tiền & Ngân hàng":["Cash & Banking","Theo dõi tiền mặt, ngân hàng và đối chiếu.","▣"],
+  "Kho & Giá thành":["Inventory & Costing","Quản lý tồn kho, nhập xuất và giá thành.","▦"],
+  "Tài sản & Phân bổ":["Fixed Assets","Theo dõi tài sản cố định, khấu hao và phân bổ.","▥"],
+  "Tiền lương":["Payroll Management","Quản lý tiền lương và chi phí nhân công.","♙"],
+  "Thuế & Hóa đơn":["Tax & Invoicing","Quản lý hóa đơn và dữ liệu thuế.","▤"],
+  "Đối chiếu & Khóa sổ":["Reconciliation & Closing","Đối chiếu dữ liệu và quy trình khóa sổ.","☑"],
+  "Báo cáo tài chính":["Financial Reporting","Tổng hợp dữ liệu và báo cáo tài chính.","▥"],
+  "Kiểm toán & Kiểm soát":["Audit & Internal Control","Kiểm soát và lịch sử hoạt động nghiệp vụ.","◇"],
+  "Legal Library":["Legal Intelligence Library","Quản lý văn bản pháp luật và thời gian hiệu lực.","⚖"],
+  "Rules Engine":["Accounting Rules Engine","Quản lý bộ quy tắc kế toán theo chế độ áp dụng.","⌘"],
+  "FINOVA AI":["FINOVA AI Assistant","Không gian hỗ trợ phân tích và tra cứu nghiệp vụ.","✧"],
+  "Thiết lập hệ thống":["System Settings","Cấu hình tổ chức và tài khoản người dùng.","⚙"]
+};
+
+function renderModule(page) {
+  const data = moduleData[page] || ["Workspace","Không gian làm việc FINOVA.","◇"];
+
+  $("pageContent").innerHTML = `
+    <div class="page-head">
+      <div>
+        <h1>${escapeHTML(data[0])}</h1>
+        <p>${escapeHTML(data[1])}</p>
+      </div>
+      <div class="actions">
+        <button class="btn" onclick="toast('Tài liệu hướng dẫn đang được xây dựng.')">Documentation</button>
+        <button class="btn btn-blue" onclick="toast('Module đang ở chế độ giao diện demo.')">＋ Create new</button>
+      </div>
+    </div>
+
+    <div class="notice">
+      <strong>Module preview:</strong> Giao diện này đang được dựng để thử nghiệm cấu trúc.
+      Chưa kết nối dữ liệu hoặc nghiệp vụ backend.
+    </div>
+
+    <div class="module-grid">
+      <div class="module-card">
+        <div class="module-icon">${data[2]}</div>
+        <h3>${escapeHTML(data[0])}</h3>
+        <p>${escapeHTML(data[1])}</p>
+        <button onclick="toast('Đây là module xem trước.')">Open workspace →</button>
+      </div>
+
+      <div class="module-card">
+        <div class="module-icon">▥</div>
+        <h3>Analytics & Reports</h3>
+        <p>Theo dõi chỉ số và báo cáo tổng hợp.</p>
+        <button onclick="navigate('Financial Analytics')">View analytics →</button>
+      </div>
+
+      <div class="module-card">
+        <div class="module-icon">◇</div>
+        <h3>Control Center</h3>
+        <p>Kiểm soát hoạt động và trạng thái xử lý.</p>
+        <button onclick="toast('Chưa kết nối nghiệp vụ backend.')">View controls →</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:15px">
+      <div class="card-title">Module development status</div>
+      <p class="card-sub" style="line-height:1.8">
+        Đây là giao diện thử nghiệm. Để sử dụng chính thức cần thiết kế bảng dữ liệu,
+        nghiệp vụ, quyền truy cập, kiểm tra dữ liệu và lịch sử kiểm soát tương ứng.
+      </p>
+    </div>
+  `;
+}
+
+/* GLOBAL SEARCH */
+$("globalSearch").addEventListener("keydown",event => {
+  if (event.key === "Enter") {
+    navigate("Giao dịch");
+    setTimeout(() => {
+      const input = $("transactionSearch");
+      if (input) {
+        input.value = event.target.value;
+        filterTransactions();
+      }
+    },50);
+  }
+});
+
+/* TOAST */
+let toastTimeout;
+function toast(message) {
+  const el = $("toast");
+  el.textContent = message;
+  el.classList.add("show");
+
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => {
+    el.classList.remove("show");
+  },2800);
+}
 </script>
 </body>
 </html>

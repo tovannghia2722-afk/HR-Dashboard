@@ -1,422 +1,159 @@
+from pathlib import Path
+p = Path("/mnt/data/Pasted text.txt")
+html = p.read_text(encoding="utf-8")
 
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Pulse PI — HR Admin</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>
-:root {
-  --blue:#2563eb; --bg:#f4f7fb; --text:#172033;
-  --muted:#64748b; --border:#e5eaf2; --white:#fff;
-}
-*{box-sizing:border-box}
-body{margin:0;font:14px Arial,sans-serif;background:var(--bg);color:var(--text)}
-button,input,select{font:inherit}
-button{cursor:pointer;border:0;border-radius:9px;padding:10px 14px}
-.primary{background:var(--blue);color:white}
-.secondary{background:#edf2ff;color:var(--blue)}
-.danger{background:#fee2e2;color:#b91c1c}
-.muted{color:var(--muted)}
-.small{font-size:12px}
-.hidden{display:none!important}
-.auth-wrap{min-height:100vh;display:grid;place-items:center;padding:20px}
-.auth-card{background:white;border:1px solid var(--border);border-radius:18px;padding:28px;width:100%;max-width:420px}
-.brand{font-size:24px;font-weight:800;color:var(--blue);margin-bottom:8px}
-input,select{width:100%;padding:11px;border:1px solid var(--border);border-radius:9px;background:white;color:var(--text)}
-label{display:block;margin:12px 0 6px;font-weight:600}
-.error{color:#dc2626;margin-top:12px;white-space:pre-wrap}
-.app{display:grid;grid-template-columns:230px minmax(0,1fr);min-height:100vh}
-.sidebar{background:#111c35;color:white;padding:24px 16px}
-.sidebar .brand{color:#93c5fd;padding:0 10px 25px}
-.nav{display:block;width:100%;text-align:left;color:#cbd5e1;background:transparent;margin:5px 0}
-.nav.active,.nav:hover{background:#263657;color:white}
-.side-note{font-size:12px;color:#9eacc4;margin:25px 10px}
-main{padding:26px;min-width:0}
-.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:24px}
-h1{font-size:25px;margin:0 0 7px}
-h2{font-size:17px;margin:0 0 18px}
-.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px;margin-bottom:18px}
-.card,.panel{background:white;border:1px solid var(--border);border-radius:15px;padding:19px;min-width:0}
-.metric{font-size:29px;font-weight:800;margin:12px 0 5px}
-.metric-label{color:var(--muted)}
-.dashboard-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px}
-.chart-box{height:260px;position:relative}
-.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
-.toolbar input{flex:1;min-width:180px}
-.table-wrap{overflow:auto}
-table{width:100%;border-collapse:collapse;min-width:720px}
-th,td{text-align:left;padding:13px 10px;border-bottom:1px solid var(--border)}
-th{font-size:12px;color:var(--muted);background:#f8fafc}
-.badge{display:inline-block;padding:5px 9px;border-radius:20px;font-size:12px;background:#dcfce7;color:#166534}
-.badge.probation{background:#fef3c7;color:#92400e}
-.badge.inactive{background:#e2e8f0;color:#475569}
-.actions{display:flex;gap:6px}
-.actions button{padding:7px 9px}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
-.notice{padding:12px;border-radius:10px;background:#eff6ff;color:#1d4ed8;margin:12px 0}
-.empty{text-align:center;padding:30px;color:var(--muted)}
-@media(max-width:950px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.app{grid-template-columns:180px minmax(0,1fr)}main{padding:18px}}
-@media(max-width:650px){.app{display:block}.sidebar{padding:12px;display:flex;gap:8px;align-items:center;overflow:auto}.sidebar .brand{padding:0;margin:0 8px 0 0;font-size:18px;white-space:nowrap}.nav{width:auto;white-space:nowrap;margin:0;padding:9px}.side-note{display:none}main{padding:14px}.cards{gap:9px}.card{padding:13px}.metric{font-size:24px}.dashboard-grid{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}}
-</style>
-</head>
-<body>
+# Add styles for the legal library and rules engine.
+extra_css = r"""
+/* FINOVA Legal Library + Accounting Rules Engine */
+.legal-toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}
+.legal-toolbar input,.legal-toolbar select{padding:10px;border:1px solid var(--line);border-radius:8px;background:#fff;min-width:170px}
+.legal-layout{display:grid;grid-template-columns:1.1fr .9fr;gap:16px;margin-top:16px}
+.legal-list{max-height:520px;overflow:auto}
+.legal-item{padding:13px;border:1px solid var(--line);border-radius:10px;margin:9px 0;cursor:pointer}
+.legal-item:hover,.legal-item.selected{border-color:var(--blue);background:#f7f9ff}
+.legal-item strong{display:block;font-size:13px;margin-bottom:5px}
+.legal-meta{font-size:11px;color:var(--muted);line-height:1.6}
+.pill{display:inline-block;padding:4px 8px;border-radius:20px;font-size:10px;background:#edf2ff;color:#315fcb;margin:3px 4px 0 0}
+.pill.ok{background:#e8f7f0;color:#137b58}.pill.warn{background:#fff4e2;color:#94620c}.pill.off{background:#f1f2f5;color:#657084}
+.legal-detail{min-height:250px}
+.legal-detail h3{margin-bottom:8px}
+.legal-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.legal-actions button{border:1px solid var(--line);border-radius:8px;padding:9px 12px;background:#fff;cursor:pointer}
+.legal-actions button.primary{background:var(--blue);color:white;border-color:var(--blue)}
+.rule-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.rule-card{border:1px solid var(--line);border-radius:10px;padding:14px;background:#fff}
+.rule-card b{display:block;margin-bottom:6px}
+.rule-card small{color:var(--muted);line-height:1.5}
+.legal-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.legal-form label{font-size:11px;color:var(--muted)}
+.legal-form input,.legal-form select,.legal-form textarea{width:100%;padding:9px;border:1px solid var(--line);border-radius:7px;margin-top:5px}
+.legal-form textarea{min-height:65px;grid-column:1/-1}
+@media(max-width:900px){.legal-layout{grid-template-columns:1fr}.rule-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.legal-form,.rule-grid{grid-template-columns:1fr}}
+"""
 
-<section id="authView" class="auth-wrap">
-  <div class="auth-card">
-    <div class="brand">Pulse PI</div>
-    <p class="muted">HR Admin Workspace</p>
-    <div class="notice">Đăng nhập để quản lý hồ sơ nhân sự của bạn.</div>
-    <form id="authForm">
-      <label>Email</label>
-      <input id="authEmail" type="email" required placeholder="you@company.com">
-      <label>Mật khẩu</label>
-      <input id="authPassword" type="password" required minlength="6" placeholder="Ít nhất 6 ký tự">
-      <button class="primary" id="loginBtn" style="width:100%;margin-top:18px">Đăng nhập</button>
-      <button type="button" class="secondary" id="signupBtn" style="width:100%;margin-top:9px">Tạo tài khoản mới</button>
-      <button type="button" id="resetBtn" class="secondary" style="width:100%;margin-top:9px">Quên mật khẩu</button>
-      <div id="authError" class="error"></div>
-    </form>
+html = html.replace("</style>", extra_css + "\n</style>", 1)
+
+old_legal = '''<section class="page" id="legal"><h1>Legal Library</h1><div class="card"><h3>Thư viện pháp luật</h3><p>Quản lý văn bản, ngày hiệu lực, văn bản sửa đổi, thay thế và quy tắc kế toán - thuế.</p><div class="notice">Chưa kết nối nguồn pháp luật chính thức. Không tự động thay đổi quy tắc hạch toán trong bản demo.</div></div></section>'''
+
+new_legal = r'''<section class="page" id="legal">
+  <div class="heading">
+    <div><h1>Legal Library & Rules Engine</h1><div class="muted">Quản lý văn bản pháp lý và cấu hình quy tắc áp dụng cho từng doanh nghiệp, từng kỳ kế toán.</div></div>
+    <button class="btn" onclick="openLegalForm()">+ Thêm văn bản</button>
   </div>
-</section>
+  <div class="grid">
+    <div class="card"><div class="metric-title">Văn bản trong thư viện mẫu</div><div class="metric" id="legalCount">6</div><div class="muted">Dữ liệu khởi tạo trong bản demo</div></div>
+    <div class="card"><div class="metric-title">Đã xác minh nguồn</div><div class="metric" id="verifiedCount">5</div><div class="positive">Có nguồn tham chiếu</div></div>
+    <div class="card"><div class="metric-title">Chờ rà soát</div><div class="metric" id="reviewCount">1</div><div class="negative">Chưa được phép kích hoạt quy tắc</div></div>
+    <div class="card"><div class="metric-title">Quy tắc nghiệp vụ</div><div class="metric">0</div><div class="muted">Chưa có quy tắc pháp lý được phê duyệt</div></div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <h3>Hồ sơ áp dụng pháp luật của doanh nghiệp</h3>
+    <div class="legal-form">
+      <label>Loại hình đơn vị<select id="entityType"><option value="company">Doanh nghiệp thông thường (TNHH / cổ phần)</option><option value="sme">Doanh nghiệp nhỏ và vừa</option><option value="micro">Doanh nghiệp siêu nhỏ</option><option value="household">Hộ kinh doanh / cá nhân kinh doanh</option><option value="coop">Hợp tác xã / liên hiệp HTX</option><option value="public">Đơn vị hành chính, sự nghiệp</option><option value="bank">Tổ chức tín dụng / ngân hàng</option><option value="insurance">Doanh nghiệp bảo hiểm</option><option value="securities">Chứng khoán / quản lý quỹ</option></select></label>
+      <label>Chế độ kế toán<select id="accountingRegime"><option value="99">TT99/2025/TT-BTC – Doanh nghiệp</option><option value="133">TT133/2016/TT-BTC – Doanh nghiệp nhỏ và vừa</option><option value="58">TT58/2026/TT-BTC – Doanh nghiệp siêu nhỏ</option><option value="152">TT152/2025/TT-BTC – Hộ kinh doanh</option><option value="71">TT71/2024/TT-BTC – Hợp tác xã</option><option value="24">TT24/2024/TT-BTC – Hành chính, sự nghiệp</option><option value="special">Chế độ chuyên ngành – cần cấu hình riêng</option></select></label>
+      <label>Kỳ kế toán bắt đầu<input id="periodStart" type="date" value="2026-01-01"></label>
+      <label>Ngày cần xác định pháp luật áp dụng<input id="legalAsOf" type="date" value="2026-11-01"></label>
+    </div>
+    <div class="legal-actions"><button class="primary" onclick="evaluateLegalProfile()">Kiểm tra phạm vi áp dụng</button><button onclick="showLegalRules()">Xem kiến trúc quy tắc</button></div>
+    <div id="profileResult" class="notice">Chọn loại hình, chế độ kế toán và ngày áp dụng để kiểm tra. Bản demo chỉ kiểm tra cấu hình, chưa thực hiện hạch toán pháp lý.</div>
+  </div>
+  <div class="legal-toolbar">
+    <input id="legalSearch" placeholder="Tìm số hiệu hoặc tên văn bản..." oninput="renderLegalList()">
+    <select id="legalCategory" onchange="renderLegalList()"><option value="">Tất cả nhóm</option><option value="accounting-regime">Chế độ kế toán</option><option value="law">Luật / nghị định</option><option value="standard">Chuẩn mực / hướng dẫn</option><option value="special">Chuyên ngành</option></select>
+    <select id="legalStatus" onchange="renderLegalList()"><option value="">Tất cả trạng thái</option><option value="verified">Có nguồn tham chiếu</option><option value="review">Chờ xác minh</option><option value="future">Có hiệu lực trong tương lai</option></select>
+  </div>
+  <div class="legal-layout">
+    <div class="card"><h3>Danh mục văn bản</h3><div id="legalList" class="legal-list"></div></div>
+    <div class="card legal-detail" id="legalDetail"><h3>Chi tiết văn bản</h3><p class="muted">Chọn một văn bản để xem thông tin, quan hệ pháp lý và phạm vi nghiệp vụ liên quan.</p></div>
+  </div>
+  <div class="card" id="legalRulesPanel" style="margin-top:16px">
+    <h3>Accounting Rules Engine – Các lớp áp dụng</h3>
+    <div class="rule-grid">
+      <div class="rule-card"><b>01 · Eligibility</b><small>Xác định đối tượng áp dụng dựa trên loại hình, quy mô, lĩnh vực và lựa chọn chế độ kế toán.</small></div>
+      <div class="rule-card"><b>02 · Effective dating</b><small>Chọn quy định theo ngày phát sinh nghiệp vụ và kỳ kế toán; xử lý điều khoản chuyển tiếp.</small></div>
+      <div class="rule-card"><b>03 · Chart of accounts</b><small>Áp dụng hệ thống tài khoản và hướng dẫn hạch toán đúng chế độ đã được phê duyệt.</small></div>
+      <div class="rule-card"><b>04 · Documents & ledgers</b><small>Chọn chứng từ, sổ kế toán, biểu mẫu và quy trình lưu trữ tương ứng.</small></div>
+      <div class="rule-card"><b>05 · Tax & reporting</b><small>Liên kết quy tắc thuế, hóa đơn, báo cáo tài chính và báo cáo chuyên ngành.</small></div>
+      <div class="rule-card"><b>06 · Audit & versioning</b><small>Lưu căn cứ, phiên bản quy tắc, người duyệt, thời điểm kích hoạt và lịch sử thay đổi.</small></div>
+    </div>
+    <div class="notice">Cảnh báo: thư viện hiện là dữ liệu mẫu cục bộ. Chưa kết nối cơ sở dữ liệu, nguồn pháp luật tự động, bộ định khoản, mẫu báo cáo hay kiểm thử tuân thủ. Không dùng kết quả demo để kê khai hoặc lập báo cáo chính thức.</div>
+  </div>
+  <div class="card" id="legalAddForm" style="display:none;margin-top:16px">
+    <h3>Thêm văn bản pháp lý</h3>
+    <div class="legal-form">
+      <label>Số hiệu văn bản<input id="newLawCode" placeholder="Ví dụ: 99/2025/TT-BTC"></label>
+      <label>Tên văn bản<input id="newLawTitle" placeholder="Tên đầy đủ văn bản"></label>
+      <label>Loại văn bản<select id="newLawCategory"><option value="accounting-regime">Chế độ kế toán</option><option value="law">Luật / nghị định</option><option value="standard">Chuẩn mực / hướng dẫn</option><option value="special">Chuyên ngành</option></select></label>
+      <label>Ngày hiệu lực<input id="newLawDate" type="date"></label>
+      <label>Trạng thái xác minh<select id="newLawStatus"><option value="review">Chờ xác minh</option><option value="verified">Đã đối chiếu nguồn chính thức</option></select></label>
+      <label>URL nguồn chính thức<input id="newLawUrl" placeholder="https://..."></label>
+      <textarea id="newLawNote" placeholder="Phạm vi áp dụng, văn bản sửa đổi/thay thế, ghi chú chuyển tiếp..."></textarea>
+    </div>
+    <div class="legal-actions"><button class="primary" onclick="saveLegalDocument()">Lưu vào danh sách demo</button><button onclick="closeLegalForm()">Hủy</button></div>
+  </div>
+</section>'''
 
-<div id="appView" class="app hidden">
-  <aside class="sidebar">
-    <div class="brand">Pulse PI</div>
-    <button class="nav active" data-page="dashboard">▦ Dashboard</button>
-    <button class="nav" data-page="employees">♙ Nhân viên</button>
-    <div class="side-note">HR Management · V1<br>Connected to Supabase</div>
-  </aside>
+if old_legal not in html:
+    raise ValueError("Không tìm thấy section Legal Library gốc để thay thế.")
+html = html.replace(old_legal, new_legal, 1)
 
-  <main>
-    <header class="topbar">
-      <div>
-        <h1 id="pageTitle">Dashboard</h1>
-        <div class="muted" id="userEmail"></div>
-      </div>
-      <button id="logoutBtn" class="secondary">Đăng xuất</button>
-    </header>
-
-    <section id="dashboardPage">
-      <div class="cards">
-        <div class="card"><div class="metric-label">Tổng nhân viên</div><div id="totalCount" class="metric">0</div><div class="muted small">Hồ sơ của bạn</div></div>
-        <div class="card"><div class="metric-label">Đang làm việc</div><div id="activeCount" class="metric">0</div><div class="muted small">Active</div></div>
-        <div class="card"><div class="metric-label">Thử việc</div><div id="probationCount" class="metric">0</div><div class="muted small">Probation</div></div>
-        <div class="card"><div class="metric-label">Đã nghỉ</div><div id="inactiveCount" class="metric">0</div><div class="muted small">Inactive</div></div>
-      </div>
-      <div class="dashboard-grid">
-        <div class="panel"><h2>Nhân sự theo phòng ban</h2><div class="chart-box"><canvas id="departmentChart"></canvas></div></div>
-        <div class="panel"><h2>Trạng thái nhân viên</h2><div class="chart-box"><canvas id="statusChart"></canvas></div></div>
-      </div>
-      <div class="panel">
-        <h2>Nhân viên mới nhất</h2>
-        <div id="recentEmployees"></div>
-      </div>
-    </section>
-
-    <section id="employeesPage" class="hidden">
-      <div class="panel">
-        <h2>Quản lý hồ sơ nhân viên</h2>
-        <div class="toolbar">
-          <input id="searchInput" placeholder="Tìm tên, email, phòng ban...">
-          <button id="addBtn" class="primary">+ Thêm nhân viên</button>
-          <button id="exportBtn" class="secondary">Xuất CSV</button>
-        </div>
-        <div id="employeeTable" class="table-wrap"></div>
-      </div>
-    </section>
-
-    <section id="employeeFormPanel" class="panel hidden" style="margin-top:18px">
-      <h2 id="formTitle">Thêm nhân viên</h2>
-      <form id="employeeForm">
-        <input id="employeeId" type="hidden">
-        <div class="form-grid">
-          <div><label>Họ và tên *</label><input id="fullName" required maxlength="150"></div>
-          <div><label>Email</label><input id="empEmail" type="email" maxlength="200"></div>
-          <div><label>Phòng ban</label><input id="department" placeholder="Nhân sự, Kế toán..." maxlength="100"></div>
-          <div><label>Chức vụ</label><input id="position" placeholder="HR Executive..." maxlength="150"></div>
-          <div><label>Ngày vào làm</label><input id="startDate" type="date"></div>
-          <div><label>Trạng thái</label><select id="empStatus"><option value="Active">Đang làm việc</option><option value="Probation">Thử việc</option><option value="Inactive">Đã nghỉ</option></select></div>
-        </div>
-        <div class="toolbar" style="margin-top:18px;margin-bottom:0">
-          <button class="primary" type="submit">Lưu nhân viên</button>
-          <button class="secondary" type="button" id="cancelBtn">Hủy</button>
-        </div>
-        <div id="formError" class="error"></div>
-      </form>
-    </section>
-    <div id="appMessage" class="error"></div>
-  </main>
-</div>
-
-<script>
-/*
-  THAY 2 GIÁ TRỊ BÊN DƯỚI BẰNG PROJECT URL VÀ PUBLISHABLE KEY
-  CỦA BẠN TRONG SUPABASE.
-*/
-const SUPABASE_URL = 'https://tounlksrxbhvlqfiakcd.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_DCOJ5XXIn8qT5NVV534UJA_QZPIaEKC';
-
-const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-let employees = [];
-let departmentChart = null;
-let statusChart = null;
-
-const $ = id => document.getElementById(id);
-const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, c => ({
-  '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
-}[c]));
-
-function showMessage(id, message='') { $(id).textContent = message; }
-
-function statusLabel(status) {
-  return {Active:'Đang làm', Probation:'Thử việc', Inactive:'Đã nghỉ'}[status] || status;
+extra_js = r'''
+// ===== FINOVA Legal Library demo data and UI =====
+const legalDocuments = [
+ {id:'law-88',code:'88/2015/QH13',title:'Luật Kế toán 2015',category:'law',effective:'2017-01-01',status:'verified',scope:'Nền tảng pháp lý chung về công tác kế toán, tổ chức bộ máy kế toán và người làm kế toán.',relations:'Được sửa đổi, bổ sung; tra cứu bản hợp nhất 41/VBHN-VPQH năm 2026.',url:'https://vbpl.moj.gov.vn/',modules:['Chứng từ','Sổ kế toán','Báo cáo tài chính','Tổ chức kế toán'],source:'CSDL quốc gia về văn bản pháp luật'},
+ {id:'vbhn-41',code:'41/VBHN-VPQH',title:'Văn bản hợp nhất Luật Kế toán',category:'law',effective:'2026-03-16',status:'verified',scope:'Bản hợp nhất để tra cứu Luật Kế toán sau sửa đổi, bổ sung.',relations:'Hợp nhất Luật 88/2015/QH13 và các nội dung sửa đổi được nêu trong văn bản.',url:'https://thuvienphapluat.vn/van-ban/Ke-toan-Kiem-toan/Van-ban-hop-nhat-41-VBHN-VPQH-2026-Luat-Ke-toan-699509.aspx',modules:['Legal Library','Tuân thủ'],source:'Văn bản hợp nhất do Văn phòng Quốc hội ban hành'},
+ {id:'tt-99',code:'99/2025/TT-BTC',title:'Hướng dẫn Chế độ kế toán doanh nghiệp',category:'accounting-regime',effective:'2026-01-01',status:'verified',scope:'Chế độ kế toán doanh nghiệp theo phạm vi và điều kiện tại thông tư.',relations:'Thay thế TT200/2014, TT75/2015, TT53/2016 và TT195/2012 theo điều khoản của TT99; cần xử lý điều khoản chuyển tiếp.',url:'https://vbpl.moj.gov.vn/bocongthuong/Pages/vbpq-luocdo.aspx?ItemID=187356',modules:['Tài khoản','Chứng từ','Sổ kế toán','Báo cáo tài chính','Định khoản'],source:'CSDL quốc gia về văn bản pháp luật'},
+ {id:'tt-58',code:'58/2026/TT-BTC',title:'Hướng dẫn Chế độ kế toán cho doanh nghiệp siêu nhỏ',category:'accounting-regime',effective:'2026-07-01',status:'verified',scope:'Doanh nghiệp siêu nhỏ; cần kiểm tra tiêu chí đối tượng và lựa chọn chế độ theo thông tư.',relations:'Thay thế TT132/2018/TT-BTC. Áp dụng cho năm tài chính bắt đầu từ ngày hoặc sau 01/07/2026 theo quy định.',url:'https://congbao.chinhphu.vn/van-ban/thong-tu-so-58-2026-tt-btc-469663.htm',modules:['Tài khoản','Chứng từ','Sổ kế toán','Báo cáo'],source:'Công báo Chính phủ'},
+ {id:'tt-152',code:'152/2025/TT-BTC',title:'Hướng dẫn kế toán cho hộ kinh doanh, cá nhân kinh doanh',category:'accounting-regime',effective:'2026-01-01',status:'verified',scope:'Hộ kinh doanh và cá nhân kinh doanh theo nhóm đối tượng quy định tại thông tư.',relations:'Thay thế TT88/2021/TT-BTC.',url:'https://vanban.chinhphu.vn/?docid=216533&pageid=27160',modules:['Sổ kế toán','Chứng từ','Theo dõi thuế'],source:'Cổng thông tin văn bản Chính phủ'},
+ {id:'tt-133',code:'133/2016/TT-BTC',title:'Chế độ kế toán doanh nghiệp nhỏ và vừa',category:'accounting-regime',effective:'2017-01-01',status:'review',scope:'Doanh nghiệp nhỏ và vừa đủ điều kiện áp dụng; cần rà soát các sửa đổi và lựa chọn chế độ hiện hành.',relations:'Không mặc nhiên bị TT99 thay thế; cần kiểm tra quy định lựa chọn và văn bản sửa đổi liên quan.',url:'https://vbpl.moj.gov.vn/',modules:['Tài khoản','Chứng từ','Sổ kế toán','Báo cáo'],source:'Cần xác minh toàn văn và lịch sử sửa đổi trước khi kích hoạt'}
+];
+let selectedLegalId = 'tt-99';
+function formatLawDate(d){ if(!d)return 'Chưa xác định'; return new Date(d+'T00:00:00').toLocaleDateString('vi-VN'); }
+function renderLegalList(){
+ const q=(document.getElementById('legalSearch')?.value||'').toLowerCase();
+ const cat=document.getElementById('legalCategory')?.value||'';
+ const st=document.getElementById('legalStatus')?.value||'';
+ const list=legalDocuments.filter(x=>(!q||(x.code+' '+x.title).toLowerCase().includes(q))&&(!cat||x.category===cat)&&(!st||x.status===st));
+ document.getElementById('legalList').innerHTML=list.length?list.map(x=>`<div class="legal-item ${x.id===selectedLegalId?'selected':''}" onclick="selectLegal('${x.id}')"><strong>${escapeLegal(x.code)} · ${escapeLegal(x.title)}</strong><div class="legal-meta">Hiệu lực: ${formatLawDate(x.effective)}</div><span class="pill ${x.status==='verified'?'ok':'warn'}">${x.status==='verified'?'Có nguồn tham chiếu':'Chờ xác minh'}</span></div>`).join(''):'<p class="muted">Không tìm thấy văn bản phù hợp.</p>';
+ document.getElementById('legalCount').textContent=legalDocuments.length;
+ document.getElementById('verifiedCount').textContent=legalDocuments.filter(x=>x.status==='verified').length;
+ document.getElementById('reviewCount').textContent=legalDocuments.filter(x=>x.status==='review').length;
 }
-function statusClass(status) {
-  return status === 'Probation' ? 'probation' : status === 'Inactive' ? 'inactive' : '';
+function escapeLegal(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function selectLegal(id){
+ selectedLegalId=id; renderLegalList();
+ const x=legalDocuments.find(a=>a.id===id); if(!x)return;
+ document.getElementById('legalDetail').innerHTML=`<h3>${escapeLegal(x.code)}</h3><b>${escapeLegal(x.title)}</b><p class="legal-meta">Ngày hiệu lực: ${formatLawDate(x.effective)}<br>Nhóm: ${escapeLegal(x.category)}<br>Nguồn: ${escapeLegal(x.source)}</p><div class="notice">${escapeLegal(x.scope)}</div><p><b>Quan hệ pháp lý</b><br>${escapeLegal(x.relations)}</p><p><b>Phân hệ liên quan</b><br>${x.modules.map(m=>`<span class="pill">${escapeLegal(m)}</span>`).join(' ')}</p><div class="legal-actions">${x.url?`<button class="primary" onclick="window.open('${escapeLegal(x.url)}','_blank','noopener')">Mở nguồn tham chiếu</button>`:''}<button onclick="alert('Bản demo chưa có chức năng tải toàn văn và phụ lục.')">Tải toàn văn</button></div>`;
 }
-
-async function signIn() {
-  showMessage('authError');
-  const {error} = await db.auth.signInWithPassword({
-    email:$('authEmail').value.trim(),
-    password:$('authPassword').value
-  });
-  if(error) showMessage('authError', error.message);
+function evaluateLegalProfile(){
+ const type=document.getElementById('entityType').value, regime=document.getElementById('accountingRegime').value;
+ const period=document.getElementById('periodStart').value, asof=document.getElementById('legalAsOf').value;
+ const map={company:['99'],sme:['133','99'],micro:['58','133','99'],household:['152'],coop:['71'],public:['24'],bank:['special'],insurance:['special'],securities:['special']};
+ const allowed=map[type]||[];
+ const labels={'99':'TT99/2025','133':'TT133/2016','58':'TT58/2026','152':'TT152/2025','71':'TT71/2024','24':'TT24/2024','special':'chế độ chuyên ngành'};
+ const doc=legalDocuments.find(x=>({'99':'tt-99','133':'tt-133','58':'tt-58','152':'tt-152'}[regime])===x.id);
+ let msg='';
+ if(!allowed.includes(regime)) msg='CẢNH BÁO: Chế độ đã chọn không khớp với cấu hình loại hình đơn vị mẫu. Cần chuyên gia xác định điều kiện áp dụng trước khi kích hoạt.';
+ else if(regime==='special'||['71','24'].includes(regime)) msg='CẦN CẤU HÌNH CHUYÊN NGÀNH: Chưa nạp đầy đủ văn bản, tài khoản, biểu mẫu và quy tắc cho chế độ này.';
+ else if(doc&&doc.status!=='verified') msg='CHƯA ĐƯỢC KÍCH HOẠT: Văn bản đang chờ rà soát đầy đủ lịch sử sửa đổi và điều kiện áp dụng.';
+ else if(regime==='58'&&period<'2026-07-01') msg='CẦN KIỂM TRA CHUYỂN TIẾP: TT58 có hiệu lực 01/07/2026 và áp dụng cho năm tài chính bắt đầu từ ngày hoặc sau ngày này.';
+ else msg='CẤU HÌNH SƠ BỘ PHÙ HỢP: Đây mới là kiểm tra lựa chọn chế độ. Cần hoàn tất kiểm tra điều kiện pháp lý, điều khoản chuyển tiếp và phê duyệt trước khi hệ thống ghi nhận nghiệp vụ.';
+ document.getElementById('profileResult').textContent=`${msg} | Chế độ: ${labels[regime]||regime} | Kỳ bắt đầu: ${period||'chưa chọn'} | Ngày tra cứu: ${asof||'chưa chọn'}`;
 }
-
-async function signUp() {
-  showMessage('authError');
-  const email = $('authEmail').value.trim();
-  const password = $('authPassword').value;
-  if(!email || password.length < 6) {
-    showMessage('authError', 'Nhập email hợp lệ và mật khẩu tối thiểu 6 ký tự.');
-    return;
-  }
-  const {data,error} = await db.auth.signUp({
-    email,password,
-    options:{emailRedirectTo:window.location.origin + window.location.pathname}
-  });
-  if(error) return showMessage('authError',error.message);
-  if(data.session) {
-    showMessage('authError','');
-  } else {
-    showMessage('authError','Tài khoản đã được tạo. Hãy kiểm tra email để xác nhận rồi đăng nhập.');
-  }
+function showLegalRules(){document.getElementById('legalRulesPanel').scrollIntoView({behavior:'smooth'});}
+function openLegalForm(){document.getElementById('legalAddForm').style.display='block';}
+function closeLegalForm(){document.getElementById('legalAddForm').style.display='none';}
+function saveLegalDocument(){
+ const code=document.getElementById('newLawCode').value.trim(),title=document.getElementById('newLawTitle').value.trim();
+ if(!code||!title){alert('Vui lòng nhập số hiệu và tên văn bản.');return;}
+ legalDocuments.push({id:'custom-'+Date.now(),code,title,category:document.getElementById('newLawCategory').value,effective:document.getElementById('newLawDate').value,status:document.getElementById('newLawStatus').value,scope:document.getElementById('newLawNote').value||'Chưa nhập phạm vi áp dụng.',relations:'Chưa khai báo quan hệ sửa đổi/thay thế.',url:document.getElementById('newLawUrl').value,modules:[],source:'Người dùng nhập – cần xác minh'});
+ closeLegalForm(); renderLegalList(); selectLegal(legalDocuments[legalDocuments.length-1].id);
+ alert('Đã thêm vào danh sách trong phiên demo. Dữ liệu chưa được lưu lên máy chủ.');
 }
+'''
+html = html.replace("</script>", extra_js + "\nrenderLegalList();\nselectLegal(selectedLegalId);\n</script>", 1)
 
-async function resetPassword() {
-  const email = $('authEmail').value.trim();
-  if(!email) return showMessage('authError','Nhập email trước khi đặt lại mật khẩu.');
-  const {error} = await db.auth.resetPasswordForEmail(email,{
-    redirectTo:window.location.origin + window.location.pathname
-  });
-  showMessage('authError',error ? error.message : 'Nếu email tồn tại, hướng dẫn đặt lại mật khẩu sẽ được gửi tới hộp thư.');
-}
-
-function renderTable() {
-  const q = $('searchInput').value.toLowerCase().trim();
-  const rows = employees.filter(e =>
-    [e.full_name,e.email,e.department,e.position,statusLabel(e.status)]
-      .some(v => String(v || '').toLowerCase().includes(q))
-  );
-  if(!rows.length) {
-    $('employeeTable').innerHTML = '<div class="empty">Chưa có nhân viên phù hợp.</div>';
-    return;
-  }
-  $('employeeTable').innerHTML = `
-    <table>
-      <thead><tr><th>Họ và tên</th><th>Email</th><th>Phòng ban</th><th>Chức vụ</th><th>Ngày vào làm</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
-      <tbody>${rows.map(e => `
-        <tr>
-          <td><strong>${escapeHTML(e.full_name)}</strong></td>
-          <td>${escapeHTML(e.email || '—')}</td>
-          <td>${escapeHTML(e.department || '—')}</td>
-          <td>${escapeHTML(e.position || '—')}</td>
-          <td>${escapeHTML(e.start_date || '—')}</td>
-          <td><span class="badge ${statusClass(e.status)}">${escapeHTML(statusLabel(e.status))}</span></td>
-          <td><div class="actions">
-            <button class="secondary" data-edit="${e.id}">Sửa</button>
-            <button class="danger" data-delete="${e.id}">Xóa</button>
-          </div></td>
-        </tr>`).join('')}
-      </tbody>
-    </table>`;
-}
-
-function renderRecent() {
-  const rows = [...employees].sort((a,b) =>
-    String(b.created_at).localeCompare(String(a.created_at))
-  ).slice(0,5);
-  if(!rows.length) {
-    $('recentEmployees').innerHTML = '<div class="empty">Chưa có dữ liệu. Hãy thêm nhân viên đầu tiên.</div>';
-    return;
-  }
-  $('recentEmployees').innerHTML = `
-    <div class="table-wrap"><table>
-      <thead><tr><th>Họ tên</th><th>Phòng ban</th><th>Chức vụ</th><th>Trạng thái</th></tr></thead>
-      <tbody>${rows.map(e => `<tr>
-        <td>${escapeHTML(e.full_name)}</td><td>${escapeHTML(e.department || '—')}</td>
-        <td>${escapeHTML(e.position || '—')}</td><td>${escapeHTML(statusLabel(e.status))}</td>
-      </tr>`).join('')}</tbody>
-    </table></div>`;
-}
-
-function renderCharts() {
-  const statuses = ['Active','Probation','Inactive'];
-  $('totalCount').textContent = employees.length;
-  $('activeCount').textContent = employees.filter(e=>e.status==='Active').length;
-  $('probationCount').textContent = employees.filter(e=>e.status==='Probation').length;
-  $('inactiveCount').textContent = employees.filter(e=>e.status==='Inactive').length;
-
-  const depts = {};
-  employees.forEach(e => {
-    const d = e.department || 'Chưa phân phòng ban';
-    depts[d] = (depts[d] || 0) + 1;
-  });
-
-  if(departmentChart) departmentChart.destroy();
-  if(statusChart) statusChart.destroy();
-
-  departmentChart = new Chart($('departmentChart'), {
-    type:'bar',
-    data:{labels:Object.keys(depts),datasets:[{label:'Nhân viên',data:Object.values(depts),backgroundColor:'#3b82f6',borderRadius:6}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}
-  });
-
-  statusChart = new Chart($('statusChart'), {
-    type:'doughnut',
-    data:{labels:statuses.map(statusLabel),datasets:[{data:statuses.map(s=>employees.filter(e=>e.status===s).length),backgroundColor:['#22c55e','#f59e0b','#94a3b8']}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}}}
-  });
-}
-
-async function loadEmployees() {
-  showMessage('appMessage');
-  const {data,error} = await db.from('employees')
-    .select('*').order('created_at',{ascending:false}).limit(1000);
-  if(error) {
-    showMessage('appMessage','Không tải được dữ liệu: '+error.message);
-    return;
-  }
-  employees = data || [];
-  renderTable();
-  renderRecent();
-  renderCharts();
-}
-
-function openForm(employee=null) {
-  $('employeeForm').reset();
-  showMessage('formError');
-  $('employeeId').value = employee?.id || '';
-  $('formTitle').textContent = employee ? 'Chỉnh sửa nhân viên' : 'Thêm nhân viên';
-  $('fullName').value = employee?.full_name || '';
-  $('empEmail').value = employee?.email || '';
-  $('department').value = employee?.department || '';
-  $('position').value = employee?.position || '';
-  $('startDate').value = employee?.start_date || '';
-  $('empStatus').value = employee?.status || 'Active';
-  $('employeeFormPanel').classList.remove('hidden');
-  $('employeeFormPanel').scrollIntoView({behavior:'smooth',block:'start'});
-}
-
-async function saveEmployee(event) {
-  event.preventDefault();
-  showMessage('formError');
-  const id = $('employeeId').value;
-  const payload = {
-    full_name:$('fullName').value.trim(),
-    email:$('empEmail').value.trim() || null,
-    department:$('department').value.trim() || null,
-    position:$('position').value.trim() || null,
-    start_date:$('startDate').value || null,
-    status:$('empStatus').value
-  };
-  if(!payload.full_name) return showMessage('formError','Vui lòng nhập họ và tên.');
-
-  let result;
-  if(id) {
-    result = await db.from('employees').update(payload).eq('id',id);
-  } else {
-    result = await db.from('employees').insert(payload);
-  }
-  if(result.error) return showMessage('formError','Không lưu được: '+result.error.message);
-
-  $('employeeFormPanel').classList.add('hidden');
-  await loadEmployees();
-}
-
-async function deleteEmployee(id) {
-  const employee = employees.find(e=>e.id===id);
-  if(!employee || !confirm('Xóa hồ sơ "'+employee.full_name+'"?')) return;
-  const {error} = await db.from('employees').delete().eq('id',id);
-  if(error) return showMessage('appMessage','Không xóa được: '+error.message);
-  await loadEmployees();
-}
-
-function exportCSV() {
-  const header = ['Họ và tên','Email','Phòng ban','Chức vụ','Ngày vào làm','Trạng thái'];
-  const rows = employees.map(e=>[
-    e.full_name,e.email,e.department,e.position,e.start_date,statusLabel(e.status)
-  ]);
-  const csv = '\uFEFF' + [header,...rows].map(row=>
-    row.map(v=>'"'+String(v ?? '').replace(/"/g,'""')+'"').join(',')
-  ).join('\r\n');
-  const url = URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));
-  const a = document.createElement('a');
-  a.href=url;a.download='pulse-pi-employees.csv';a.click();
-  URL.revokeObjectURL(url);
-}
-
-function showApp(session) {
-  const loggedIn = !!session;
-  $('authView').classList.toggle('hidden',loggedIn);
-  $('appView').classList.toggle('hidden',!loggedIn);
-  if(loggedIn) {
-    $('userEmail').textContent=session.user.email || '';
-    loadEmployees();
-  } else {
-    employees=[];
-    if(departmentChart) {departmentChart.destroy();departmentChart=null;}
-    if(statusChart) {statusChart.destroy();statusChart=null;}
-  }
-}
-
-$('authForm').addEventListener('submit',e=>{e.preventDefault();signIn();});
-$('signupBtn').addEventListener('click',signUp);
-$('resetBtn').addEventListener('click',resetPassword);
-$('logoutBtn').addEventListener('click',async()=>{await db.auth.signOut();});
-$('employeeForm').addEventListener('submit',saveEmployee);
-$('addBtn').addEventListener('click',()=>openForm());
-$('cancelBtn').addEventListener('click',()=>$('employeeFormPanel').classList.add('hidden'));
-$('searchInput').addEventListener('input',renderTable);
-$('exportBtn').addEventListener('click',exportCSV);
-
-document.querySelectorAll('.nav').forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    document.querySelectorAll('.nav').forEach(b=>b.classList.toggle('active',b===btn));
-    const page=btn.dataset.page;
-    $('dashboardPage').classList.toggle('hidden',page!=='dashboard');
-    $('employeesPage').classList.toggle('hidden',page!=='employees');
-    $('employeeFormPanel').classList.add('hidden');
-    $('pageTitle').textContent=page==='dashboard'?'Dashboard':'Quản lý nhân viên';
-  });
-});
-
-$('employeeTable').addEventListener('click',e=>{
-  const edit=e.target.closest('[data-edit]');
-  const del=e.target.closest('[data-delete]');
-  if(edit) {
-    const employee=employees.find(x=>x.id===edit.dataset.edit);
-    if(employee) openForm(employee);
-  }
-  if(del) deleteEmployee(del.dataset.delete);
-});
-
-db.auth.onAuthStateChange((_event,session)=>showApp(session));
-db.auth.getSession().then(({data})=>showApp(data.session));
-</script>
-</body>
-</html>
+out = Path("/mnt/data/FINOVA_Legal_Library_Rules_Prototype.html")
+out.write_text(html, encoding="utf-8")
+print(f"Created: {out} ({out.stat().st_size:,} bytes)")

@@ -1,159 +1,875 @@
-from pathlib import Path
-p = Path("/mnt/data/Pasted text.txt")
-html = p.read_text(encoding="utf-8")
 
-# Add styles for the legal library and rules engine.
-extra_css = r"""
-/* FINOVA Legal Library + Accounting Rules Engine */
-.legal-toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}
-.legal-toolbar input,.legal-toolbar select{padding:10px;border:1px solid var(--line);border-radius:8px;background:#fff;min-width:170px}
-.legal-layout{display:grid;grid-template-columns:1.1fr .9fr;gap:16px;margin-top:16px}
-.legal-list{max-height:520px;overflow:auto}
-.legal-item{padding:13px;border:1px solid var(--line);border-radius:10px;margin:9px 0;cursor:pointer}
-.legal-item:hover,.legal-item.selected{border-color:var(--blue);background:#f7f9ff}
-.legal-item strong{display:block;font-size:13px;margin-bottom:5px}
-.legal-meta{font-size:11px;color:var(--muted);line-height:1.6}
-.pill{display:inline-block;padding:4px 8px;border-radius:20px;font-size:10px;background:#edf2ff;color:#315fcb;margin:3px 4px 0 0}
-.pill.ok{background:#e8f7f0;color:#137b58}.pill.warn{background:#fff4e2;color:#94620c}.pill.off{background:#f1f2f5;color:#657084}
-.legal-detail{min-height:250px}
-.legal-detail h3{margin-bottom:8px}
-.legal-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-.legal-actions button{border:1px solid var(--line);border-radius:8px;padding:9px 12px;background:#fff;cursor:pointer}
-.legal-actions button.primary{background:var(--blue);color:white;border-color:var(--blue)}
-.rule-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-.rule-card{border:1px solid var(--line);border-radius:10px;padding:14px;background:#fff}
-.rule-card b{display:block;margin-bottom:6px}
-.rule-card small{color:var(--muted);line-height:1.5}
-.legal-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.legal-form label{font-size:11px;color:var(--muted)}
-.legal-form input,.legal-form select,.legal-form textarea{width:100%;padding:9px;border:1px solid var(--line);border-radius:7px;margin-top:5px}
-.legal-form textarea{min-height:65px;grid-column:1/-1}
-@media(max-width:900px){.legal-layout{grid-template-columns:1fr}.rule-grid{grid-template-columns:1fr 1fr}}
-@media(max-width:600px){.legal-form,.rule-grid{grid-template-columns:1fr}}
-"""
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FINOVA | Financial Intelligence Platform</title>
+<meta name="theme-color" content="#102A56">
 
-html = html.replace("</style>", extra_css + "\n</style>", 1)
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-old_legal = '''<section class="page" id="legal"><h1>Legal Library</h1><div class="card"><h3>Thư viện pháp luật</h3><p>Quản lý văn bản, ngày hiệu lực, văn bản sửa đổi, thay thế và quy tắc kế toán - thuế.</p><div class="notice">Chưa kết nối nguồn pháp luật chính thức. Không tự động thay đổi quy tắc hạch toán trong bản demo.</div></div></section>'''
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-new_legal = r'''<section class="page" id="legal">
-  <div class="heading">
-    <div><h1>Legal Library & Rules Engine</h1><div class="muted">Quản lý văn bản pháp lý và cấu hình quy tắc áp dụng cho từng doanh nghiệp, từng kỳ kế toán.</div></div>
-    <button class="btn" onclick="openLegalForm()">+ Thêm văn bản</button>
-  </div>
-  <div class="grid">
-    <div class="card"><div class="metric-title">Văn bản trong thư viện mẫu</div><div class="metric" id="legalCount">6</div><div class="muted">Dữ liệu khởi tạo trong bản demo</div></div>
-    <div class="card"><div class="metric-title">Đã xác minh nguồn</div><div class="metric" id="verifiedCount">5</div><div class="positive">Có nguồn tham chiếu</div></div>
-    <div class="card"><div class="metric-title">Chờ rà soát</div><div class="metric" id="reviewCount">1</div><div class="negative">Chưa được phép kích hoạt quy tắc</div></div>
-    <div class="card"><div class="metric-title">Quy tắc nghiệp vụ</div><div class="metric">0</div><div class="muted">Chưa có quy tắc pháp lý được phê duyệt</div></div>
-  </div>
-  <div class="card" style="margin-top:16px">
-    <h3>Hồ sơ áp dụng pháp luật của doanh nghiệp</h3>
-    <div class="legal-form">
-      <label>Loại hình đơn vị<select id="entityType"><option value="company">Doanh nghiệp thông thường (TNHH / cổ phần)</option><option value="sme">Doanh nghiệp nhỏ và vừa</option><option value="micro">Doanh nghiệp siêu nhỏ</option><option value="household">Hộ kinh doanh / cá nhân kinh doanh</option><option value="coop">Hợp tác xã / liên hiệp HTX</option><option value="public">Đơn vị hành chính, sự nghiệp</option><option value="bank">Tổ chức tín dụng / ngân hàng</option><option value="insurance">Doanh nghiệp bảo hiểm</option><option value="securities">Chứng khoán / quản lý quỹ</option></select></label>
-      <label>Chế độ kế toán<select id="accountingRegime"><option value="99">TT99/2025/TT-BTC – Doanh nghiệp</option><option value="133">TT133/2016/TT-BTC – Doanh nghiệp nhỏ và vừa</option><option value="58">TT58/2026/TT-BTC – Doanh nghiệp siêu nhỏ</option><option value="152">TT152/2025/TT-BTC – Hộ kinh doanh</option><option value="71">TT71/2024/TT-BTC – Hợp tác xã</option><option value="24">TT24/2024/TT-BTC – Hành chính, sự nghiệp</option><option value="special">Chế độ chuyên ngành – cần cấu hình riêng</option></select></label>
-      <label>Kỳ kế toán bắt đầu<input id="periodStart" type="date" value="2026-01-01"></label>
-      <label>Ngày cần xác định pháp luật áp dụng<input id="legalAsOf" type="date" value="2026-11-01"></label>
+<style>
+:root{
+  --navy:#102A56;
+  --blue:#2563EB;
+  --blue-light:#EFF5FF;
+  --bg:#F6F8FC;
+  --white:#FFFFFF;
+  --text:#172B4D;
+  --muted:#8492A6;
+  --border:#E8EDF5;
+  --green:#16A37A;
+  --red:#E05260;
+  --orange:#E9A23B;
+  --sidebar:250px;
+  --radius:14px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:'Inter',sans-serif;
+  color:var(--text);
+  background:var(--bg);
+  font-size:14px;
+}
+button,input,select{font:inherit}
+button{cursor:pointer}
+.hidden{display:none!important}
+.muted{color:var(--muted)}
+/* LOGIN */
+#loginScreen{
+  min-height:100vh;
+  display:grid;
+  grid-template-columns:1.05fr .95fr;
+  background:#fff;
+}
+.login-visual{
+  background:linear-gradient(145deg,#102A56 0%,#174A91 55%,#2563EB 100%);
+  color:white;
+  padding:60px 8%;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  position:relative;
+  overflow:hidden;
+}
+.login-visual:before,.login-visual:after{
+  content:"";position:absolute;border:1px solid #ffffff20;
+  border-radius:50%;width:520px;height:520px;right:-180px;top:15%;
+}
+.login-visual:after{
+  width:360px;height:360px;right:-100px;top:25%;
+}
+.brand{display:flex;align-items:center;gap:12px;font-weight:800;letter-spacing:1.5px;font-size:21px;position:relative;z-index:1}
+.brand-mark{
+  height:40px;width:40px;border-radius:12px;background:#ffffff20;
+  display:grid;place-items:center;border:1px solid #ffffff35;
+}
+.login-copy{max-width:560px;position:relative;z-index:1}
+.login-copy h1{font-size:clamp(34px,4vw,56px);line-height:1.13;letter-spacing:-2px;margin:0 0 22px}
+.login-copy p{font-size:16px;line-height:1.8;color:#D5E4FA;max-width:470px}
+.login-stats{display:flex;gap:35px;margin-top:45px}
+.login-stats strong{display:block;font-size:23px;margin-bottom:5px}
+.login-stats span{color:#C9D9F2;font-size:12px}
+.login-foot{color:#BCD0EF;font-size:11px;letter-spacing:1px;position:relative;z-index:1}
+.login-panel{display:flex;align-items:center;justify-content:center;padding:35px}
+.login-box{width:100%;max-width:420px}
+.login-box h2{font-size:28px;letter-spacing:-.8px;margin:0 0 9px}
+.login-box .sub{color:var(--muted);margin:0 0 35px;line-height:1.7}
+.field{margin-bottom:20px}
+.field label{display:block;font-size:12px;font-weight:700;margin-bottom:9px;color:#42546D}
+.field input{
+  width:100%;height:49px;border:1px solid var(--border);
+  border-radius:10px;padding:0 14px;outline:none;background:#fff;
+  transition:.2s;
+}
+.field input:focus{border-color:var(--blue);box-shadow:0 0 0 3px #2563eb14}
+.login-options{display:flex;justify-content:space-between;align-items:center;font-size:12px;margin:5px 0 23px}
+.login-options a{color:var(--blue);text-decoration:none;font-weight:600}
+.primary-btn{
+  border:0;border-radius:10px;background:var(--blue);color:#fff;
+  padding:14px 18px;font-weight:700;width:100%;
+  box-shadow:0 5px 15px #2563eb25;transition:.2s;
+}
+.primary-btn:hover{background:#174fc4;transform:translateY(-1px)}
+.demo-btn{
+  width:100%;border:1px solid var(--border);background:#fff;
+  color:var(--text);padding:13px;border-radius:10px;margin-top:12px;font-weight:600;
+}
+.demo-btn:hover{background:var(--blue-light);border-color:#C9D9F8}
+.login-message{font-size:12px;margin-top:14px;line-height:1.6;color:var(--red)}
+.login-note{font-size:11px;color:var(--muted);margin-top:30px;line-height:1.7}
+/* APPLICATION */
+#app{min-height:100vh}
+.sidebar{
+  width:var(--sidebar);position:fixed;inset:0 auto 0 0;background:#fff;
+  border-right:1px solid var(--border);z-index:20;display:flex;flex-direction:column;
+}
+.sidebar-brand{height:78px;display:flex;align-items:center;padding:0 24px;gap:11px;border-bottom:1px solid var(--border)}
+.sidebar-brand .brand-mark{background:var(--navy);color:white;border:0}
+.sidebar-brand .brand{color:var(--navy);font-size:19px}
+.workspace{padding:17px 20px;border-bottom:1px solid var(--border)}
+.workspace small{font-size:10px;color:var(--muted);font-weight:700;letter-spacing:1px}
+.workspace strong{display:block;margin-top:7px;font-size:13px}
+.nav-wrap{padding:18px 12px;overflow:auto;flex:1}
+.nav-label{font-size:10px;font-weight:800;letter-spacing:1.2px;color:#9AA7B8;padding:0 12px;margin:17px 0 9px}
+.nav-item{
+  height:42px;padding:0 12px;display:flex;align-items:center;gap:12px;
+  border-radius:9px;color:#64748B;text-decoration:none;margin:3px 0;
+  font-size:12px;font-weight:600;cursor:pointer;transition:.15s;
+}
+.nav-item i{width:17px;height:17px}
+.nav-item:hover{background:#F4F7FC;color:var(--blue)}
+.nav-item.active{background:var(--blue-light);color:var(--blue);font-weight:700}
+.nav-badge{margin-left:auto;font-size:10px;background:#FFF2E1;color:#B7791F;padding:3px 7px;border-radius:20px}
+.sidebar-bottom{padding:14px;border-top:1px solid var(--border)}
+.profile-mini{display:flex;align-items:center;gap:10px;padding:8px}
+.avatar{width:36px;height:36px;border-radius:50%;background:#E5EEFF;color:var(--blue);display:grid;place-items:center;font-weight:800}
+.profile-mini strong{font-size:12px;display:block}
+.profile-mini small{font-size:10px;color:var(--muted)}
+.main{margin-left:var(--sidebar);min-height:100vh}
+.topbar{
+  height:76px;background:#fff;border-bottom:1px solid var(--border);
+  padding:0 34px;display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:10;
+}
+.top-left{display:flex;align-items:center;gap:14px}
+.page-heading{font-size:17px;font-weight:800;letter-spacing:-.4px}
+.breadcrumb{font-size:11px;color:var(--muted);margin-top:4px}
+.top-actions{display:flex;align-items:center;gap:12px}
+.search{
+  height:38px;width:220px;border:1px solid var(--border);border-radius:9px;
+  display:flex;align-items:center;gap:8px;padding:0 11px;color:var(--muted);
+}
+.search input{border:0;outline:0;width:100%;font-size:11px}
+.icon-btn{
+  width:38px;height:38px;border:1px solid var(--border);border-radius:9px;
+  background:#fff;color:#64748B;display:grid;place-items:center;position:relative;
+}
+.dot{width:6px;height:6px;background:#E05260;border-radius:50%;position:absolute;right:8px;top:7px}
+.content{padding:28px 34px 45px;max-width:1700px;margin:auto}
+.page-top{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:24px;gap:20px}
+.page-top h1{font-size:23px;letter-spacing:-.8px;margin:0 0 7px}
+.page-top p{font-size:12px;color:var(--muted);margin:0}
+.page-actions{display:flex;gap:9px}
+.btn-light,.btn-blue{
+  padding:10px 14px;border-radius:9px;font-size:11px;font-weight:700;
+  border:1px solid var(--border);background:#fff;color:#42546D;
+}
+.btn-blue{background:var(--blue);border-color:var(--blue);color:#fff}
+.btn-light:hover{background:#F5F8FD}
+.btn-blue:hover{background:#174FC4}
+/* KPI */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:18px}
+.kpi{
+  background:#fff;border:1px solid var(--border);border-radius:var(--radius);
+  padding:19px 20px;min-width:0;
+}
+.kpi-head{display:flex;align-items:center;justify-content:space-between;color:#718096;font-size:11px;font-weight:600}
+.kpi-icon{width:34px;height:34px;border-radius:9px;display:grid;place-items:center}
+.kpi-value{font-size:25px;font-weight:800;letter-spacing:-1px;margin:15px 0 8px}
+.kpi-foot{font-size:10px;color:var(--muted);display:flex;align-items:center;gap:5px}
+.up{color:var(--green);font-weight:700}.down{color:var(--red);font-weight:700}
+.chart-grid{display:grid;grid-template-columns:1.7fr 1fr;gap:16px;margin-bottom:18px}
+.card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:20px;min-width:0}
+.card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:20px}
+.card-title{font-size:13px;font-weight:800}
+.card-sub{font-size:10px;color:var(--muted);margin-top:6px}
+.card select{border:1px solid var(--border);background:#fff;padding:8px 10px;border-radius:7px;color:#64748B;font-size:10px;outline:none}
+.chart-box{height:270px;position:relative}
+.bottom-grid{display:grid;grid-template-columns:1.45fr 1fr;gap:16px}
+.table-wrap{overflow:auto}
+table{width:100%;border-collapse:collapse;white-space:nowrap}
+th{text-align:left;font-size:10px;color:#96A1B1;font-weight:700;padding:12px 10px;border-bottom:1px solid var(--border)}
+td{padding:14px 10px;border-bottom:1px solid #F0F3F8;font-size:11px}
+tr:last-child td{border-bottom:0}
+.status{display:inline-flex;padding:5px 8px;border-radius:20px;font-size:9px;font-weight:700}
+.status.done{background:#E8F7F1;color:#168461}
+.status.pending{background:#FFF5E5;color:#B7791F}
+.status.cancel{background:#FFF0F0;color:#D14A56}
+.transaction-name{font-weight:700}
+.transaction-id{font-size:9px;color:var(--muted);margin-top:4px}
+.activity-list{display:flex;flex-direction:column}
+.activity{display:flex;gap:11px;padding:12px 0;border-bottom:1px solid #F0F3F8}
+.activity:last-child{border:0}
+.activity-icon{width:32px;height:32px;flex-shrink:0;border-radius:9px;display:grid;place-items:center}
+.activity strong{font-size:11px;display:block;margin-bottom:5px}
+.activity p{font-size:10px;color:var(--muted);margin:0;line-height:1.6}
+.activity time{font-size:9px;color:#A4AFBD;display:block;margin-top:5px}
+/* GENERIC MODULE */
+.module-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.module-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:22px;transition:.2s}
+.module-card:hover{border-color:#BCD0F8;transform:translateY(-2px);box-shadow:0 8px 25px #183d7210}
+.module-card .kpi-icon{margin-bottom:17px}
+.module-card h3{font-size:13px;margin:0 0 8px}
+.module-card p{font-size:11px;color:var(--muted);line-height:1.7;margin:0 0 16px}
+.module-card button{background:var(--blue-light);color:var(--blue);border:0;padding:8px 11px;border-radius:7px;font-size:10px;font-weight:700}
+.notice{
+  background:#EFF5FF;border:1px solid #DCE8FF;border-radius:10px;
+  padding:13px 15px;color:#365D9A;font-size:11px;line-height:1.6;margin-bottom:18px;
+}
+.footer{font-size:10px;color:#A3ADBA;text-align:center;padding:28px 0 0}
+.mobile-menu{display:none}
+/* RESPONSIVE */
+@media(max-width:1100px){
+  :root{--sidebar:220px}
+  .content{padding:24px}
+  .topbar{padding:0 24px}
+  .kpi-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:760px){
+  #loginScreen{grid-template-columns:1fr}
+  .login-visual{display:none}
+  .login-panel{min-height:100vh;padding:28px}
+  .sidebar{transform:translateX(-100%);transition:.25s;box-shadow:10px 0 35px #102a5615}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0}
+  .topbar{height:65px;padding:0 16px}
+  .mobile-menu{display:grid}
+  .search{display:none}
+  .content{padding:22px 15px}
+  .page-top{align-items:flex-start;flex-direction:column}
+  .kpi-grid{gap:10px}
+  .kpi{padding:15px}
+  .kpi-value{font-size:21px}
+  .chart-grid,.bottom-grid{grid-template-columns:1fr}
+  .module-grid{grid-template-columns:1fr}
+  .chart-box{height:240px}
+}
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<section id="loginScreen">
+  <div class="login-visual">
+    <div class="brand">
+      <div class="brand-mark"><i data-lucide="landmark"></i></div>
+      FINOVA
     </div>
-    <div class="legal-actions"><button class="primary" onclick="evaluateLegalProfile()">Kiểm tra phạm vi áp dụng</button><button onclick="showLegalRules()">Xem kiến trúc quy tắc</button></div>
-    <div id="profileResult" class="notice">Chọn loại hình, chế độ kế toán và ngày áp dụng để kiểm tra. Bản demo chỉ kiểm tra cấu hình, chưa thực hiện hạch toán pháp lý.</div>
-  </div>
-  <div class="legal-toolbar">
-    <input id="legalSearch" placeholder="Tìm số hiệu hoặc tên văn bản..." oninput="renderLegalList()">
-    <select id="legalCategory" onchange="renderLegalList()"><option value="">Tất cả nhóm</option><option value="accounting-regime">Chế độ kế toán</option><option value="law">Luật / nghị định</option><option value="standard">Chuẩn mực / hướng dẫn</option><option value="special">Chuyên ngành</option></select>
-    <select id="legalStatus" onchange="renderLegalList()"><option value="">Tất cả trạng thái</option><option value="verified">Có nguồn tham chiếu</option><option value="review">Chờ xác minh</option><option value="future">Có hiệu lực trong tương lai</option></select>
-  </div>
-  <div class="legal-layout">
-    <div class="card"><h3>Danh mục văn bản</h3><div id="legalList" class="legal-list"></div></div>
-    <div class="card legal-detail" id="legalDetail"><h3>Chi tiết văn bản</h3><p class="muted">Chọn một văn bản để xem thông tin, quan hệ pháp lý và phạm vi nghiệp vụ liên quan.</p></div>
-  </div>
-  <div class="card" id="legalRulesPanel" style="margin-top:16px">
-    <h3>Accounting Rules Engine – Các lớp áp dụng</h3>
-    <div class="rule-grid">
-      <div class="rule-card"><b>01 · Eligibility</b><small>Xác định đối tượng áp dụng dựa trên loại hình, quy mô, lĩnh vực và lựa chọn chế độ kế toán.</small></div>
-      <div class="rule-card"><b>02 · Effective dating</b><small>Chọn quy định theo ngày phát sinh nghiệp vụ và kỳ kế toán; xử lý điều khoản chuyển tiếp.</small></div>
-      <div class="rule-card"><b>03 · Chart of accounts</b><small>Áp dụng hệ thống tài khoản và hướng dẫn hạch toán đúng chế độ đã được phê duyệt.</small></div>
-      <div class="rule-card"><b>04 · Documents & ledgers</b><small>Chọn chứng từ, sổ kế toán, biểu mẫu và quy trình lưu trữ tương ứng.</small></div>
-      <div class="rule-card"><b>05 · Tax & reporting</b><small>Liên kết quy tắc thuế, hóa đơn, báo cáo tài chính và báo cáo chuyên ngành.</small></div>
-      <div class="rule-card"><b>06 · Audit & versioning</b><small>Lưu căn cứ, phiên bản quy tắc, người duyệt, thời điểm kích hoạt và lịch sử thay đổi.</small></div>
+
+    <div class="login-copy">
+      <div style="font-size:11px;letter-spacing:2px;color:#B8D1F7;font-weight:700;margin-bottom:20px">
+        FINANCIAL INTELLIGENCE PLATFORM
+      </div>
+      <h1>Clarity in Finance.<br>Confidence in Decisions.</h1>
+      <p>
+        Một không gian quản trị tài chính tập trung.
+        Kết nối dữ liệu kế toán, phân tích hiệu quả và
+        hỗ trợ doanh nghiệp ra quyết định chính xác hơn.
+      </p>
+      <div class="login-stats">
+        <div><strong>FINOVA</strong><span>Financial Intelligence</span></div>
+        <div><strong>360°</strong><span>Financial Visibility</span></div>
+      </div>
     </div>
-    <div class="notice">Cảnh báo: thư viện hiện là dữ liệu mẫu cục bộ. Chưa kết nối cơ sở dữ liệu, nguồn pháp luật tự động, bộ định khoản, mẫu báo cáo hay kiểm thử tuân thủ. Không dùng kết quả demo để kê khai hoặc lập báo cáo chính thức.</div>
+
+    <div class="login-foot">FINOVA TECHNOLOGY · FINANCIAL ANALYTICS</div>
   </div>
-  <div class="card" id="legalAddForm" style="display:none;margin-top:16px">
-    <h3>Thêm văn bản pháp lý</h3>
-    <div class="legal-form">
-      <label>Số hiệu văn bản<input id="newLawCode" placeholder="Ví dụ: 99/2025/TT-BTC"></label>
-      <label>Tên văn bản<input id="newLawTitle" placeholder="Tên đầy đủ văn bản"></label>
-      <label>Loại văn bản<select id="newLawCategory"><option value="accounting-regime">Chế độ kế toán</option><option value="law">Luật / nghị định</option><option value="standard">Chuẩn mực / hướng dẫn</option><option value="special">Chuyên ngành</option></select></label>
-      <label>Ngày hiệu lực<input id="newLawDate" type="date"></label>
-      <label>Trạng thái xác minh<select id="newLawStatus"><option value="review">Chờ xác minh</option><option value="verified">Đã đối chiếu nguồn chính thức</option></select></label>
-      <label>URL nguồn chính thức<input id="newLawUrl" placeholder="https://..."></label>
-      <textarea id="newLawNote" placeholder="Phạm vi áp dụng, văn bản sửa đổi/thay thế, ghi chú chuyển tiếp..."></textarea>
+
+  <div class="login-panel">
+    <div class="login-box">
+      <div class="brand" style="color:var(--navy);margin-bottom:40px">
+        <div class="brand-mark" style="background:var(--blue);color:white">
+          <i data-lucide="landmark"></i>
+        </div>
+        FINOVA
+      </div>
+
+      <h2>Welcome back</h2>
+      <p class="sub">Đăng nhập để truy cập không gian tài chính của bạn.</p>
+
+      <form id="loginForm">
+        <div class="field">
+          <label>Email address</label>
+          <input id="email" type="email" value="tovanghia27225@gmail.com"
+                 placeholder="name@company.com" required autocomplete="username">
+        </div>
+
+        <div class="field">
+          <label>Password</label>
+          <input id="password" type="password" placeholder="Nhập mật khẩu"
+                 required autocomplete="current-password">
+        </div>
+
+        <div class="login-options">
+          <label style="display:flex;align-items:center;gap:7px;color:#64748B">
+            <input type="checkbox" id="remember" checked> Remember me
+          </label>
+          <a href="#" id="forgotPassword">Forgot password?</a>
+        </div>
+
+        <button class="primary-btn" id="loginButton" type="submit">
+          Sign in to FINOVA
+        </button>
+      </form>
+
+      <button class="demo-btn" id="demoButton">
+        Explore demo dashboard
+      </button>
+
+      <div id="loginMessage" class="login-message"></div>
+
+      <p class="login-note">
+        Secure access to your financial workspace.<br>
+        Bản demo sử dụng dữ liệu minh họa, không phải dữ liệu kế toán thực tế.
+      </p>
     </div>
-    <div class="legal-actions"><button class="primary" onclick="saveLegalDocument()">Lưu vào danh sách demo</button><button onclick="closeLegalForm()">Hủy</button></div>
   </div>
-</section>'''
+</section>
 
-if old_legal not in html:
-    raise ValueError("Không tìm thấy section Legal Library gốc để thay thế.")
-html = html.replace(old_legal, new_legal, 1)
+<!-- APP -->
+<section id="app" class="hidden">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-mark"><i data-lucide="landmark"></i></div>
+      <div class="brand">FINOVA</div>
+    </div>
 
-extra_js = r'''
-// ===== FINOVA Legal Library demo data and UI =====
-const legalDocuments = [
- {id:'law-88',code:'88/2015/QH13',title:'Luật Kế toán 2015',category:'law',effective:'2017-01-01',status:'verified',scope:'Nền tảng pháp lý chung về công tác kế toán, tổ chức bộ máy kế toán và người làm kế toán.',relations:'Được sửa đổi, bổ sung; tra cứu bản hợp nhất 41/VBHN-VPQH năm 2026.',url:'https://vbpl.moj.gov.vn/',modules:['Chứng từ','Sổ kế toán','Báo cáo tài chính','Tổ chức kế toán'],source:'CSDL quốc gia về văn bản pháp luật'},
- {id:'vbhn-41',code:'41/VBHN-VPQH',title:'Văn bản hợp nhất Luật Kế toán',category:'law',effective:'2026-03-16',status:'verified',scope:'Bản hợp nhất để tra cứu Luật Kế toán sau sửa đổi, bổ sung.',relations:'Hợp nhất Luật 88/2015/QH13 và các nội dung sửa đổi được nêu trong văn bản.',url:'https://thuvienphapluat.vn/van-ban/Ke-toan-Kiem-toan/Van-ban-hop-nhat-41-VBHN-VPQH-2026-Luat-Ke-toan-699509.aspx',modules:['Legal Library','Tuân thủ'],source:'Văn bản hợp nhất do Văn phòng Quốc hội ban hành'},
- {id:'tt-99',code:'99/2025/TT-BTC',title:'Hướng dẫn Chế độ kế toán doanh nghiệp',category:'accounting-regime',effective:'2026-01-01',status:'verified',scope:'Chế độ kế toán doanh nghiệp theo phạm vi và điều kiện tại thông tư.',relations:'Thay thế TT200/2014, TT75/2015, TT53/2016 và TT195/2012 theo điều khoản của TT99; cần xử lý điều khoản chuyển tiếp.',url:'https://vbpl.moj.gov.vn/bocongthuong/Pages/vbpq-luocdo.aspx?ItemID=187356',modules:['Tài khoản','Chứng từ','Sổ kế toán','Báo cáo tài chính','Định khoản'],source:'CSDL quốc gia về văn bản pháp luật'},
- {id:'tt-58',code:'58/2026/TT-BTC',title:'Hướng dẫn Chế độ kế toán cho doanh nghiệp siêu nhỏ',category:'accounting-regime',effective:'2026-07-01',status:'verified',scope:'Doanh nghiệp siêu nhỏ; cần kiểm tra tiêu chí đối tượng và lựa chọn chế độ theo thông tư.',relations:'Thay thế TT132/2018/TT-BTC. Áp dụng cho năm tài chính bắt đầu từ ngày hoặc sau 01/07/2026 theo quy định.',url:'https://congbao.chinhphu.vn/van-ban/thong-tu-so-58-2026-tt-btc-469663.htm',modules:['Tài khoản','Chứng từ','Sổ kế toán','Báo cáo'],source:'Công báo Chính phủ'},
- {id:'tt-152',code:'152/2025/TT-BTC',title:'Hướng dẫn kế toán cho hộ kinh doanh, cá nhân kinh doanh',category:'accounting-regime',effective:'2026-01-01',status:'verified',scope:'Hộ kinh doanh và cá nhân kinh doanh theo nhóm đối tượng quy định tại thông tư.',relations:'Thay thế TT88/2021/TT-BTC.',url:'https://vanban.chinhphu.vn/?docid=216533&pageid=27160',modules:['Sổ kế toán','Chứng từ','Theo dõi thuế'],source:'Cổng thông tin văn bản Chính phủ'},
- {id:'tt-133',code:'133/2016/TT-BTC',title:'Chế độ kế toán doanh nghiệp nhỏ và vừa',category:'accounting-regime',effective:'2017-01-01',status:'review',scope:'Doanh nghiệp nhỏ và vừa đủ điều kiện áp dụng; cần rà soát các sửa đổi và lựa chọn chế độ hiện hành.',relations:'Không mặc nhiên bị TT99 thay thế; cần kiểm tra quy định lựa chọn và văn bản sửa đổi liên quan.',url:'https://vbpl.moj.gov.vn/',modules:['Tài khoản','Chứng từ','Sổ kế toán','Báo cáo'],source:'Cần xác minh toàn văn và lịch sử sửa đổi trước khi kích hoạt'}
-];
-let selectedLegalId = 'tt-99';
-function formatLawDate(d){ if(!d)return 'Chưa xác định'; return new Date(d+'T00:00:00').toLocaleDateString('vi-VN'); }
-function renderLegalList(){
- const q=(document.getElementById('legalSearch')?.value||'').toLowerCase();
- const cat=document.getElementById('legalCategory')?.value||'';
- const st=document.getElementById('legalStatus')?.value||'';
- const list=legalDocuments.filter(x=>(!q||(x.code+' '+x.title).toLowerCase().includes(q))&&(!cat||x.category===cat)&&(!st||x.status===st));
- document.getElementById('legalList').innerHTML=list.length?list.map(x=>`<div class="legal-item ${x.id===selectedLegalId?'selected':''}" onclick="selectLegal('${x.id}')"><strong>${escapeLegal(x.code)} · ${escapeLegal(x.title)}</strong><div class="legal-meta">Hiệu lực: ${formatLawDate(x.effective)}</div><span class="pill ${x.status==='verified'?'ok':'warn'}">${x.status==='verified'?'Có nguồn tham chiếu':'Chờ xác minh'}</span></div>`).join(''):'<p class="muted">Không tìm thấy văn bản phù hợp.</p>';
- document.getElementById('legalCount').textContent=legalDocuments.length;
- document.getElementById('verifiedCount').textContent=legalDocuments.filter(x=>x.status==='verified').length;
- document.getElementById('reviewCount').textContent=legalDocuments.filter(x=>x.status==='review').length;
-}
-function escapeLegal(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-function selectLegal(id){
- selectedLegalId=id; renderLegalList();
- const x=legalDocuments.find(a=>a.id===id); if(!x)return;
- document.getElementById('legalDetail').innerHTML=`<h3>${escapeLegal(x.code)}</h3><b>${escapeLegal(x.title)}</b><p class="legal-meta">Ngày hiệu lực: ${formatLawDate(x.effective)}<br>Nhóm: ${escapeLegal(x.category)}<br>Nguồn: ${escapeLegal(x.source)}</p><div class="notice">${escapeLegal(x.scope)}</div><p><b>Quan hệ pháp lý</b><br>${escapeLegal(x.relations)}</p><p><b>Phân hệ liên quan</b><br>${x.modules.map(m=>`<span class="pill">${escapeLegal(m)}</span>`).join(' ')}</p><div class="legal-actions">${x.url?`<button class="primary" onclick="window.open('${escapeLegal(x.url)}','_blank','noopener')">Mở nguồn tham chiếu</button>`:''}<button onclick="alert('Bản demo chưa có chức năng tải toàn văn và phụ lục.')">Tải toàn văn</button></div>`;
-}
-function evaluateLegalProfile(){
- const type=document.getElementById('entityType').value, regime=document.getElementById('accountingRegime').value;
- const period=document.getElementById('periodStart').value, asof=document.getElementById('legalAsOf').value;
- const map={company:['99'],sme:['133','99'],micro:['58','133','99'],household:['152'],coop:['71'],public:['24'],bank:['special'],insurance:['special'],securities:['special']};
- const allowed=map[type]||[];
- const labels={'99':'TT99/2025','133':'TT133/2016','58':'TT58/2026','152':'TT152/2025','71':'TT71/2024','24':'TT24/2024','special':'chế độ chuyên ngành'};
- const doc=legalDocuments.find(x=>({'99':'tt-99','133':'tt-133','58':'tt-58','152':'tt-152'}[regime])===x.id);
- let msg='';
- if(!allowed.includes(regime)) msg='CẢNH BÁO: Chế độ đã chọn không khớp với cấu hình loại hình đơn vị mẫu. Cần chuyên gia xác định điều kiện áp dụng trước khi kích hoạt.';
- else if(regime==='special'||['71','24'].includes(regime)) msg='CẦN CẤU HÌNH CHUYÊN NGÀNH: Chưa nạp đầy đủ văn bản, tài khoản, biểu mẫu và quy tắc cho chế độ này.';
- else if(doc&&doc.status!=='verified') msg='CHƯA ĐƯỢC KÍCH HOẠT: Văn bản đang chờ rà soát đầy đủ lịch sử sửa đổi và điều kiện áp dụng.';
- else if(regime==='58'&&period<'2026-07-01') msg='CẦN KIỂM TRA CHUYỂN TIẾP: TT58 có hiệu lực 01/07/2026 và áp dụng cho năm tài chính bắt đầu từ ngày hoặc sau ngày này.';
- else msg='CẤU HÌNH SƠ BỘ PHÙ HỢP: Đây mới là kiểm tra lựa chọn chế độ. Cần hoàn tất kiểm tra điều kiện pháp lý, điều khoản chuyển tiếp và phê duyệt trước khi hệ thống ghi nhận nghiệp vụ.';
- document.getElementById('profileResult').textContent=`${msg} | Chế độ: ${labels[regime]||regime} | Kỳ bắt đầu: ${period||'chưa chọn'} | Ngày tra cứu: ${asof||'chưa chọn'}`;
-}
-function showLegalRules(){document.getElementById('legalRulesPanel').scrollIntoView({behavior:'smooth'});}
-function openLegalForm(){document.getElementById('legalAddForm').style.display='block';}
-function closeLegalForm(){document.getElementById('legalAddForm').style.display='none';}
-function saveLegalDocument(){
- const code=document.getElementById('newLawCode').value.trim(),title=document.getElementById('newLawTitle').value.trim();
- if(!code||!title){alert('Vui lòng nhập số hiệu và tên văn bản.');return;}
- legalDocuments.push({id:'custom-'+Date.now(),code,title,category:document.getElementById('newLawCategory').value,effective:document.getElementById('newLawDate').value,status:document.getElementById('newLawStatus').value,scope:document.getElementById('newLawNote').value||'Chưa nhập phạm vi áp dụng.',relations:'Chưa khai báo quan hệ sửa đổi/thay thế.',url:document.getElementById('newLawUrl').value,modules:[],source:'Người dùng nhập – cần xác minh'});
- closeLegalForm(); renderLegalList(); selectLegal(legalDocuments[legalDocuments.length-1].id);
- alert('Đã thêm vào danh sách trong phiên demo. Dữ liệu chưa được lưu lên máy chủ.');
-}
-'''
-html = html.replace("</script>", extra_js + "\nrenderLegalList();\nselectLegal(selectedLegalId);\n</script>", 1)
+    <div class="workspace">
+      <small>WORKSPACE</small>
+      <strong>My Organization <i data-lucide="chevron-down" style="width:13px;vertical-align:middle"></i></strong>
+    </div>
 
-out = Path("/mnt/data/FINOVA_Legal_Library_Rules_Prototype.html")
-out.write_text(html, encoding="utf-8")
-print(f"Created: {out} ({out.stat().st_size:,} bytes)")
+    <nav class="nav-wrap">
+      <div class="nav-label">OVERVIEW</div>
+      <a class="nav-item active" data-page="Dashboard"><i data-lucide="layout-dashboard"></i>Dashboard</a>
+      <a class="nav-item" data-page="Financial Analytics"><i data-lucide="chart-no-axes-combined"></i>Financial Analytics</a>
+
+      <div class="nav-label">ACCOUNTING</div>
+      <a class="nav-item" data-page="Data Center"><i data-lucide="database"></i>Data Center</a>
+      <a class="nav-item" data-page="Chứng từ & Sổ sách"><i data-lucide="file-text"></i>Chứng từ & Sổ sách</a>
+      <a class="nav-item" data-page="Mua hàng & Bán hàng"><i data-lucide="arrow-left-right"></i>Mua hàng & Bán hàng</a>
+      <a class="nav-item" data-page="Tiền & Ngân hàng"><i data-lucide="wallet"></i>Tiền & Ngân hàng</a>
+      <a class="nav-item" data-page="Kho & Giá thành"><i data-lucide="boxes"></i>Kho & Giá thành</a>
+      <a class="nav-item" data-page="Tài sản & Phân bổ"><i data-lucide="building-2"></i>Tài sản & Phân bổ</a>
+      <a class="nav-item" data-page="Tiền lương"><i data-lucide="users"></i>Tiền lương</a>
+      <a class="nav-item" data-page="Thuế & Hóa đơn"><i data-lucide="receipt"></i>Thuế & Hóa đơn</a>
+
+      <div class="nav-label">CONTROL & REPORTING</div>
+      <a class="nav-item" data-page="Đối chiếu & Khóa sổ"><i data-lucide="list-checks"></i>Đối chiếu & Khóa sổ</a>
+      <a class="nav-item" data-page="Báo cáo tài chính"><i data-lucide="file-bar-chart"></i>Báo cáo tài chính</a>
+      <a class="nav-item" data-page="Kiểm toán & Kiểm soát"><i data-lucide="shield-check"></i>Kiểm toán & Kiểm soát</a>
+
+      <div class="nav-label">INTELLIGENCE</div>
+      <a class="nav-item" data-page="Legal Library"><i data-lucide="scale"></i>Legal Library</a>
+      <a class="nav-item" data-page="Rules Engine"><i data-lucide="workflow"></i>Rules Engine</a>
+      <a class="nav-item" data-page="FINOVA AI"><i data-lucide="sparkles"></i>FINOVA AI <span class="nav-badge">AI</span></a>
+
+      <div class="nav-label">SYSTEM</div>
+      <a class="nav-item" data-page="Thiết lập hệ thống"><i data-lucide="settings"></i>Thiết lập hệ thống</a>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="profile-mini">
+        <div class="avatar">N</div>
+        <div style="min-width:0;flex:1">
+          <strong id="profileName">FINOVA User</strong>
+          <small id="profileEmail">Demo workspace</small>
+        </div>
+        <button class="icon-btn" id="logoutButton" title="Đăng xuất" style="width:31px;height:31px">
+          <i data-lucide="log-out" style="width:15px"></i>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="top-left">
+        <button class="icon-btn mobile-menu" id="mobileMenu"><i data-lucide="menu"></i></button>
+        <div>
+          <div class="page-heading" id="topTitle">Dashboard</div>
+          <div class="breadcrumb">FINOVA / <span id="breadcrumb">Overview</span></div>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <div class="search">
+          <i data-lucide="search" style="width:15px"></i>
+          <input placeholder="Search anything...">
+          <span style="font-size:9px;border:1px solid #E8EDF5;border-radius:4px;padding:3px 5px">⌘ K</span>
+        </div>
+        <button class="icon-btn" title="Thông báo"><i data-lucide="bell"></i><span class="dot"></span></button>
+        <button class="icon-btn" title="Trợ giúp"><i data-lucide="circle-help"></i></button>
+        <div class="avatar">N</div>
+      </div>
+    </header>
+
+    <div class="content" id="pageContent">
+      <!-- DASHBOARD CONTENT -->
+      <div class="page-top">
+        <div>
+          <h1>Financial Overview</h1>
+          <p>The latest financial performance of your organization.</p>
+        </div>
+        <div class="page-actions">
+          <select id="periodSelect" class="btn-light">
+            <option>Tháng 11/2026</option>
+            <option>Tháng 10/2026</option>
+            <option>Quý III/2026</option>
+            <option>Năm 2026</option>
+          </select>
+          <button class="btn-blue" onclick="showToast('Đây là dữ liệu minh họa của bản demo.')">
+            <i data-lucide="download" style="width:13px;vertical-align:middle"></i> Export report
+          </button>
+        </div>
+      </div>
+
+      <div class="notice">
+        <strong>Demo workspace:</strong> Các số liệu tài chính và giao dịch bên dưới chỉ phục vụ minh họa giao diện. Chưa kết nối dữ liệu kế toán thực tế.
+      </div>
+
+      <section class="kpi-grid">
+        <div class="kpi">
+          <div class="kpi-head">Total Revenue <span class="kpi-icon" style="background:#EFF5FF;color:#2563EB"><i data-lucide="trending-up"></i></span></div>
+          <div class="kpi-value">2.85 tỷ</div>
+          <div class="kpi-foot"><span class="up">↑ 12.5%</span> compared to last period</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-head">Total Expenses <span class="kpi-icon" style="background:#FFF4E8;color:#E69A36"><i data-lucide="wallet"></i></span></div>
+          <div class="kpi-value">1.24 tỷ</div>
+          <div class="kpi-foot"><span class="down">↑ 4.2%</span> compared to last period</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-head">Net Profit <span class="kpi-icon" style="background:#EAF8F2;color:#16A37A"><i data-lucide="badge-dollar-sign"></i></span></div>
+          <div class="kpi-value">1.61 tỷ</div>
+          <div class="kpi-foot"><span class="up">↑ 18.8%</span> compared to last period</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-head">Cash Balance <span class="kpi-icon" style="background:#F2EEFF;color:#8264D8"><i data-lucide="landmark"></i></span></div>
+          <div class="kpi-value">3.42 tỷ</div>
+          <div class="kpi-foot"><span class="up">↑ 8.1%</span> compared to last period</div>
+        </div>
+      </section>
+
+      <section class="chart-grid">
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">Revenue & Expenses</div>
+              <div class="card-sub">Financial performance over time</div>
+            </div>
+            <select id="chartPeriod">
+              <option>Last 6 months</option>
+              <option>Last 12 months</option>
+            </select>
+          </div>
+          <div class="chart-box"><canvas id="financeChart"></canvas></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">Revenue Breakdown</div>
+              <div class="card-sub">Revenue by business segment</div>
+            </div>
+            <button class="btn-light" onclick="showToast('Báo cáo phân tích đang ở chế độ demo.')">Details</button>
+          </div>
+          <div class="chart-box" style="height:220px"><canvas id="revenueChart"></canvas></div>
+          <div style="display:flex;justify-content:center;gap:17px;flex-wrap:wrap;font-size:10px;color:#718096;margin-top:8px">
+            <span>● Products</span><span style="color:#2563EB">● Services</span><span style="color:#8BA9DF">● Other</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="bottom-grid">
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">Recent Transactions</div>
+              <div class="card-sub">Latest accounting activities</div>
+            </div>
+            <button class="btn-light" onclick="navigate('Chứng từ & Sổ sách')">View all</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>TRANSACTION</th><th>DATE</th><th>AMOUNT</th><th>STATUS</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><div class="transaction-name">Customer payment</div><div class="transaction-id">REC-2026-0018</div></td>
+                  <td>01 Nov 2026</td><td style="font-weight:700;color:#168461">+185,000,000</td><td><span class="status done">Completed</span></td>
+                </tr>
+                <tr>
+                  <td><div class="transaction-name">Office expenses</div><div class="transaction-id">PAY-2026-0021</div></td>
+                  <td>01 Nov 2026</td><td style="font-weight:700">-24,500,000</td><td><span class="status done">Completed</span></td>
+                </tr>
+                <tr>
+                  <td><div class="transaction-name">Supplier invoice</div><div class="transaction-id">PUR-2026-0032</div></td>
+                  <td>31 Oct 2026</td><td style="font-weight:700">-86,000,000</td><td><span class="status pending">Pending</span></td>
+                </tr>
+                <tr>
+                  <td><div class="transaction-name">Service revenue</div><div class="transaction-id">SAL-2026-0042</div></td>
+                  <td>30 Oct 2026</td><td style="font-weight:700;color:#168461">+120,000,000</td><td><span class="status done">Completed</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">Business Activities</div>
+              <div class="card-sub">Recent system updates</div>
+            </div>
+            <button class="btn-light" onclick="showToast('Không có hoạt động mới trong bản demo.')">View all</button>
+          </div>
+          <div class="activity-list">
+            <div class="activity">
+              <div class="activity-icon" style="background:#EAF8F2;color:#16A37A"><i data-lucide="check-circle" style="width:16px"></i></div>
+              <div><strong>Payment reconciled</strong><p>Customer payment REC-2026-0018 has been reconciled.</p><time>Today · 09:42 AM</time></div>
+            </div>
+            <div class="activity">
+              <div class="activity-icon" style="background:#EFF5FF;color:#2563EB"><i data-lucide="file-text" style="width:16px"></i></div>
+              <div><strong>New voucher created</strong><p>A new accounting voucher has been recorded.</p><time>Today · 08:30 AM</time></div>
+            </div>
+            <div class="activity">
+              <div class="activity-icon" style="background:#FFF4E8;color:#D58A28"><i data-lucide="clock" style="width:16px"></i></div>
+              <div><strong>Pending approval</strong><p>One supplier invoice is waiting for approval.</p><time>Yesterday · 04:15 PM</time></div>
+            </div>
+            <div class="activity">
+              <div class="activity-icon" style="background:#F2EEFF;color:#8264D8"><i data-lucide="scale" style="width:16px"></i></div>
+              <div><strong>Legal Library updated</strong><p>Legal document information is available for review.</p><time>Yesterday · 02:10 PM</time></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="footer">© 2026 FINOVA · Financial Intelligence Platform · All rights reserved.</div>
+    </div>
+  </main>
+</section>
+
+<div id="toast" style="position:fixed;bottom:25px;right:25px;background:#102A56;color:white;padding:13px 18px;border-radius:9px;font-size:12px;box-shadow:0 8px 25px #102a5630;z-index:100;display:none"></div>
+
+<script>
+/* =====================================================
+   FINOVA CONFIGURATION
+   Điền thông tin Supabase của dự án FINOVA tại đây.
+   Chỉ sử dụng Publishable/Anon key ở trình duyệt.
+   KHÔNG BAO GIỜ đưa Service Role Key vào file này.
+===================================================== */
+
+const SUPABASE_URL = "YOUR_SUPABASE_PROJECT_URL";
+const SUPABASE_ANON_KEY = "YOUR_SUPABASE_PUBLISHABLE_OR_ANON_KEY";
+
+let supabaseClient = null;
+let demoMode = false;
+let financeChartInstance = null;
+let revenueChartInstance = null;
+
+const isSupabaseConfigured =
+  SUPABASE_URL.startsWith("https://") &&
+  !SUPABASE_URL.includes("YOUR_") &&
+  SUPABASE_ANON_KEY &&
+  !SUPABASE_ANON_KEY.includes("YOUR_");
+
+if (isSupabaseConfigured && window.supabase) {
+  supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY
+  );
+}
+
+function setMessage(message, color) {
+  const el = document.getElementById("loginMessage");
+  el.textContent = message;
+  el.style.color = color || "#E05260";
+}
+
+function showApp(email, isDemo) {
+  demoMode = Boolean(isDemo);
+  document.getElementById("loginScreen").classList.add("hidden");
+  document.getElementById("app").classList.remove("hidden");
+
+  const displayEmail = email || "Demo workspace";
+  document.getElementById("profileEmail").textContent = displayEmail;
+  document.getElementById("profileName").textContent =
+    displayEmail.split("@")[0] || "FINOVA User";
+
+  setTimeout(() => {
+    initCharts();
+    if (window.lucide) lucide.createIcons();
+  }, 100);
+}
+
+function showLogin() {
+  document.getElementById("app").classList.add("hidden");
+  document.getElementById("loginScreen").classList.remove("hidden");
+}
+
+document.getElementById("loginForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+  const button = document.getElementById("loginButton");
+
+  if (!supabaseClient) {
+    setMessage("Chưa cấu hình Supabase. Hãy điền SUPABASE_URL và SUPABASE_ANON_KEY trong code, hoặc chọn Explore demo dashboard.", "#D58A28");
+    return;
+  }
+
+  button.disabled = true;
+  button.textContent = "Signing in...";
+
+  try {
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (error) throw error;
+
+    showApp(data.user?.email || email, false);
+  } catch (error) {
+    setMessage(error.message || "Đăng nhập không thành công.");
+  } finally {
+    button.disabled = false;
+    button.textContent = "Sign in to FINOVA";
+  }
+});
+
+document.getElementById("demoButton").addEventListener("click", () => {
+  document.getElementById("password").value = "";
+  showApp("Demo workspace", true);
+});
+
+document.getElementById("forgotPassword").addEventListener("click", async (event) => {
+  event.preventDefault();
+
+  const email = document.getElementById("email").value.trim();
+
+  if (!email) {
+    setMessage("Vui lòng nhập email trước.");
+    return;
+  }
+
+  if (!supabaseClient) {
+    setMessage("Cần cấu hình Supabase trước khi sử dụng chức năng khôi phục mật khẩu.", "#D58A28");
+    return;
+  }
+
+  const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin
+  });
+
+  if (error) setMessage(error.message);
+  else setMessage("Đã gửi hướng dẫn khôi phục mật khẩu đến email của bạn.", "#168461");
+});
+
+document.getElementById("logoutButton").addEventListener("click", async () => {
+  if (!demoMode && supabaseClient) {
+    await supabaseClient.auth.signOut();
+  }
+  demoMode = false;
+  showLogin();
+});
+
+document.getElementById("mobileMenu").addEventListener("click", () => {
+  document.getElementById("sidebar").classList.toggle("open");
+});
+
+function initCharts() {
+  const financeCanvas = document.getElementById("financeChart");
+  const revenueCanvas = document.getElementById("revenueChart");
+  if (!financeCanvas || !revenueCanvas || !window.Chart) return;
+
+  if (financeChartInstance) financeChartInstance.destroy();
+  if (revenueChartInstance) revenueChartInstance.destroy();
+
+  financeChartInstance = new Chart(financeCanvas, {
+    type: "line",
+    data: {
+      labels: ["Jun", "Jul", "Aug", "Sep", "Oct", "Nov"],
+      datasets: [
+        {
+          label: "Revenue",
+          data: [1.6, 1.85, 1.7, 2.1, 2.45, 2.85],
+          borderColor: "#2563EB",
+          backgroundColor: "rgba(37,99,235,.08)",
+          fill: true,
+          tension: .38,
+          borderWidth: 2.5,
+          pointRadius: 3,
+          pointBackgroundColor: "#2563EB"
+        },
+        {
+          label: "Expenses",
+          data: [1.1, 1.18, 1.23, 1.15, 1.3, 1.24],
+          borderColor: "#9BB3D8",
+          backgroundColor: "rgba(155,179,216,.05)",
+          fill: true,
+          tension: .38,
+          borderWidth: 2,
+          pointRadius: 3,
+          pointBackgroundColor: "#9BB3D8"
+        }
+      ]
+    },
+    options: {
+      maintainAspectRatio: false,
+      interaction: { mode: "index", intersect: false },
+      plugins: {
+        legend: {
+          position: "top",
+          align: "end",
+          labels: { usePointStyle: true, boxWidth: 7, boxHeight: 7, font: { size: 10, family: "Inter" } }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: "#8A98AA", font: { size: 10 } } },
+        y: {
+          beginAtZero: true,
+          grid: { color: "#F0F3F8" },
+          ticks: { color: "#8A98AA", font: { size: 10 }, callback: value => value + "B" }
+        }
+      }
+    }
+  });
+
+  revenueChartInstance = new Chart(revenueCanvas, {
+    type: "doughnut",
+    data: {
+      labels: ["Products", "Services", "Other"],
+      datasets: [{
+        data: [55, 30, 15],
+        backgroundColor: ["#2563EB", "#8BA9DF", "#D9E5F7"],
+        borderWidth: 0,
+        hoverOffset: 5
+      }]
+    },
+    options: {
+      maintainAspectRatio: false,
+      cutout: "75%",
+      plugins: {
+        legend: { display: false }
+      }
+    }
+  });
+}
+
+function navigate(page) {
+  document.querySelectorAll(".nav-item").forEach(item => {
+    item.classList.toggle("active", item.dataset.page === page);
+  });
+
+  document.getElementById("topTitle").textContent = page;
+  document.getElementById("breadcrumb").textContent = page;
+
+  const content = document.getElementById("pageContent");
+
+  if (page === "Dashboard" || page === "Financial Analytics") {
+    content.innerHTML = `
+      <div class="page-top">
+        <div>
+          <h1>Financial Overview</h1>
+          <p>Financial performance and analytics overview.</p>
+        </div>
+        <div class="page-actions">
+          <select class="btn-light"><option>Tháng 11/2026</option><option>Tháng 10/2026</option></select>
+          <button class="btn-blue" onclick="showToast('Đây là dữ liệu demo.')">Export report</button>
+        </div>
+      </div>
+      <div class="notice"><strong>Demo workspace:</strong> Số liệu được dùng để minh họa giao diện.</div>
+      <section class="kpi-grid">
+        ${kpiCard("Total Revenue","2.85 tỷ","↑ 12.5%","trending-up","#EFF5FF","#2563EB")}
+        ${kpiCard("Total Expenses","1.24 tỷ","↑ 4.2%","wallet","#FFF4E8","#E69A36")}
+        ${kpiCard("Net Profit","1.61 tỷ","↑ 18.8%","badge-dollar-sign","#EAF8F2","#16A37A")}
+        ${kpiCard("Cash Balance","3.42 tỷ","↑ 8.1%","landmark","#F2EEFF","#8264D8")}
+      </section>
+      <section class="chart-grid">
+        <div class="card"><div class="card-head"><div><div class="card-title">Revenue & Expenses</div><div class="card-sub">Financial performance over time</div></div></div><div class="chart-box"><canvas id="financeChart"></canvas></div></div>
+        <div class="card"><div class="card-head"><div><div class="card-title">Revenue Breakdown</div><div class="card-sub">Revenue by business segment</div></div></div><div class="chart-box"><canvas id="revenueChart"></canvas></div></div>
+      </section>
+      <div class="card"><div class="card-title">Financial Intelligence</div><p class="card-sub">Theo dõi doanh thu, chi phí, lợi nhuận, dòng tiền và công nợ trên cùng một nền tảng.</p></div>
+      <div class="footer">© 2026 FINOVA · Financial Intelligence Platform</div>
+    `;
+    setTimeout(initCharts, 80);
+  } else {
+    const modules = {
+      "Data Center": ["Master Data","Quản lý danh mục khách hàng, nhà cung cấp, hàng hóa và tài khoản kế toán.","database"],
+      "Chứng từ & Sổ sách": ["Accounting Documents","Quản lý chứng từ, định khoản, sổ nhật ký chung và sổ cái.","file-text"],
+      "Mua hàng & Bán hàng": ["Purchasing & Sales","Quản lý quy trình mua hàng, bán hàng, hóa đơn và công nợ.","arrow-left-right"],
+      "Tiền & Ngân hàng": ["Cash & Banking","Theo dõi thu chi, tiền mặt, tài khoản ngân hàng và đối chiếu.","wallet"],
+      "Kho & Giá thành": ["Inventory & Costing","Theo dõi nhập xuất tồn, phương pháp tính giá xuất kho và giá thành.","boxes"],
+      "Tài sản & Phân bổ": ["Fixed Assets","Quản lý tài sản cố định, khấu hao và công cụ dụng cụ.","building-2"],
+      "Tiền lương": ["Payroll Management","Quản lý bảng lương, chi phí nhân công và các khoản phải trả.","users"],
+      "Thuế & Hóa đơn": ["Tax & Invoicing","Quản lý dữ liệu thuế, hóa đơn và nghĩa vụ kê khai.","receipt"],
+      "Đối chiếu & Khóa sổ": ["Reconciliation & Closing","Đối chiếu số liệu và kiểm soát quy trình khóa sổ kế toán.","list-checks"],
+      "Báo cáo tài chính": ["Financial Reporting","Tập hợp dữ liệu và xây dựng báo cáo tài chính theo chế độ áp dụng.","file-bar-chart"],
+      "Kiểm toán & Kiểm soát": ["Audit & Internal Control","Theo dõi nhật ký hệ thống, kiểm soát và lịch sử phê duyệt.","shield-check"],
+      "Legal Library": ["Legal Intelligence Library","Thư viện văn bản pháp luật, hiệu lực, phạm vi áp dụng và lịch sử cập nhật.","scale"],
+      "Rules Engine": ["Accounting Rules Engine","Quản lý bộ quy tắc kế toán theo chế độ, đối tượng và thời điểm hiệu lực.","workflow"],
+      "FINOVA AI": ["FINOVA AI Assistant","Không gian hỗ trợ phân tích dữ liệu và tra cứu nghiệp vụ kế toán.","sparkles"],
+      "Thiết lập hệ thống": ["System Settings","Cấu hình doanh nghiệp, người dùng, phân quyền và kỳ kế toán.","settings"]
+    };
+
+    const info = modules[page] || ["Workspace", "Không gian quản lý nghiệp vụ.", "layers"];
+
+    content.innerHTML = `
+      <div class="page-top">
+        <div><h1>${info[0]}</h1><p>${info[1]}</p></div>
+        <div class="page-actions"><button class="btn-light" onclick="showToast('Tính năng đang ở giai đoạn thiết kế.')">Documentation</button><button class="btn-blue" onclick="showToast('Module demo: chưa kết nối nghiệp vụ backend.')">Create new</button></div>
+      </div>
+      <div class="notice"><strong>Workspace preview:</strong> Đây là giao diện module minh họa. Chức năng lưu dữ liệu, xử lý kế toán và phân quyền cần được kết nối backend Supabase.</div>
+      <div class="module-grid">
+        <div class="module-card"><div class="kpi-icon" style="background:#EFF5FF;color:#2563EB"><i data-lucide="${info[2]}"></i></div><h3>${info[0]}</h3><p>${info[1]}</p><button onclick="showToast('Chức năng đang được xây dựng.')">Open workspace →</button></div>
+        <div class="module-card"><div class="kpi-icon" style="background:#EAF8F2;color:#16A37A"><i data-lucide="chart-no-axes-combined"></i></div><h3>Analytics & Reports</h3><p>Theo dõi số liệu, báo cáo và các chỉ số quan trọng.</p><button onclick="showToast('Chức năng đang được xây dựng.')">View reports →</button></div>
+        <div class="module-card"><div class="kpi-icon" style="background:#FFF4E8;color:#D58A28"><i data-lucide="shield-check"></i></div><h3>Control Center</h3><p>Kiểm soát hoạt động, trạng thái xử lý và nhật ký nghiệp vụ.</p><button onclick="showToast('Chức năng đang được xây dựng.')">View controls →</button></div>
+      </div>
+      <div class="card" style="margin-top:18px">
+        <div class="card-title">Module information</div>
+        <p class="card-sub">Module đã được bố trí trong giao diện FINOVA. Cần xây dựng bảng dữ liệu, nghiệp vụ và chính sách bảo mật tương ứng trước khi sử dụng dữ liệu thật.</p>
+      </div>
+      <div class="footer">© 2026 FINOVA · Financial Intelligence Platform</div>
+    `;
+    if (window.lucide) lucide.createIcons();
+  }
+
+  document.getElementById("sidebar").classList.remove("open");
+}
+
+function kpiCard(title, value, trend, icon, bg, color) {
+  return `<div class="kpi"><div class="kpi-head">${title}<span class="kpi-icon" style="background:${bg};color:${color}"><i data-lucide="${icon}"></i></span></div><div class="kpi-value">${value}</div><div class="kpi-foot"><span class="up">${trend}</span> compared to last period</div></div>`;
+}
+
+document.querySelectorAll(".nav-item").forEach(item => {
+  item.addEventListener("click", () => navigate(item.dataset.page));
+});
+
+let toastTimer;
+function showToast(message) {
+  const toast = document.getElementById("toast");
+  toast.textContent = message;
+  toast.style.display = "block";
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.style.display = "none", 3200);
+}
+
+async function checkExistingSession() {
+  if (!supabaseClient) return;
+
+  try {
+    const { data } = await supabaseClient.auth.getSession();
+    if (data.session) {
+      showApp(data.session.user.email, false);
+    }
+  } catch (error) {
+    console.error("Session check failed:", error);
+  }
+}
+
+if (window.lucide) lucide.createIcons();
+checkExistingSession();
+</script>
+</body>
+</html>

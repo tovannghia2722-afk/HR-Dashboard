@@ -640,41 +640,80 @@ function renderCompanySetup() {
   $("companyForm").addEventListener("submit",createCompany);
 }
 
+
 async function createCompany(event) {
   event.preventDefault();
 
   const name = $("companyName").value.trim();
-  if (!name) return;
-
   const button = $("createCompanyButton");
+  const message = $("companyMessage");
+
+  message.textContent = "";
+
+  if (!name) {
+    message.textContent = "Vui lòng nhập tên doanh nghiệp.";
+    return;
+  }
+
   button.disabled = true;
-  button.textContent = "Creating...";
+  button.textContent = "Đang kiểm tra tài khoản...";
 
   try {
-    const {data:company,error} = await db
+    // Lấy tài khoản đã xác thực trực tiếp từ Supabase
+    const { data, error: authError } = await db.auth.getUser();
+
+    if (authError) throw authError;
+
+    const user = data.user;
+
+    if (!user) {
+      throw new Error("Bạn chưa đăng nhập hợp lệ. Hãy đăng nhập lại.");
+    }
+
+    // Tạo hồ sơ doanh nghiệp với UID thật
+    const companyPayload = {
+      legal_name: name,
+      tax_code: $("taxCode").value.trim() || null,
+      accounting_regime: $("regime").value,
+      currency_code: "VND",
+      fiscal_year_start: 1,
+      created_by: user.id
+    };
+
+    button.textContent = "Đang tạo doanh nghiệp...";
+
+    const { data: company, error } = await db
       .from("fnv_companies")
-      .insert({
-        legal_name:name,
-        tax_code:$("taxCode").value.trim() || null,
-        accounting_regime:$("regime").value,
-        currency_code:"VND",
-        fiscal_year_start:1,
-        created_by:session.user.id
-      })
+      .insert(companyPayload)
       .select()
       .single();
 
     if (error) throw error;
 
     activeCompany = company;
-    sessionStorage.setItem("fnv_active_company",company.id);
 
-    await initializeCompany(company.id,new Date().getFullYear());
+    sessionStorage.setItem("fnv_active_company", company.id);
+
+    // Khởi tạo kỳ kế toán và danh mục tài khoản
+    try {
+      await initializeCompany(
+        company.id,
+        new Date().getFullYear()
+      );
+    } catch (setupError) {
+      throw new Error(
+        "Doanh nghiệp đã tạo thành công nhưng khởi tạo dữ liệu ban đầu chưa hoàn tất: " +
+        setupError.message
+      );
+    }
 
     await loadUserCompanies();
-    toast("Đã tạo doanh nghiệp và khởi tạo dữ liệu ban đầu.");
-  } catch(error) {
-    $("companyMessage").textContent = error.message;
+
+    toast("Tạo doanh nghiệp thành công!");
+
+  } catch (error) {
+    console.error("FINOVA company creation:", error);
+    message.textContent = error.message || "Không thể tạo doanh nghiệp.";
   } finally {
     button.disabled = false;
     button.textContent = "Create workspace";

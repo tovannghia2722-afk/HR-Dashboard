@@ -1,1487 +1,258 @@
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#102A56">
-<title>FINOVA | Financial Intelligence</title>
-
+<meta name="theme-color" content="#102a56">
+<title>FINOVA Enterprise | Financial Intelligence</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <style>
-:root{
- --navy:#102A56;--blue:#2563EB;--blue2:#174FC4;--light:#EFF5FF;
- --bg:#F6F8FC;--white:#fff;--text:#172B4D;--muted:#8290A5;
- --line:#E7ECF4;--green:#15966F;--red:#D94F5C;--orange:#D9902F;
- --side:245px;
-}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font:13px Inter,Arial,sans-serif}
-button,input,select,textarea{font:inherit}
-button{cursor:pointer}
-.hidden{display:none!important}
-a{color:var(--blue);text-decoration:none}
-.brand{display:flex;align-items:center;gap:11px;font-size:21px;font-weight:800;letter-spacing:1.5px;color:var(--navy)}
-.brand-icon{width:39px;height:39px;border-radius:11px;background:var(--navy);color:white;display:grid;place-items:center;font-size:20px}
-.muted{color:var(--muted)}
-.small{font-size:10px}
-.btn{border:1px solid var(--line);border-radius:8px;padding:9px 13px;background:white;color:#53647D;font-weight:700;font-size:11px}
-.btn:hover{background:#F4F7FC}
-.btn-primary{background:var(--blue);border-color:var(--blue);color:white}
-.btn-primary:hover{background:var(--blue2)}
-.btn-danger{color:var(--red)}
-.field{margin-bottom:15px}
-.field label{display:block;font-size:11px;font-weight:700;margin-bottom:7px}
-.field input,.field select,.field textarea{
- width:100%;border:1px solid var(--line);border-radius:8px;padding:11px 12px;
- background:white;outline:none;color:var(--text)
-}
-.field input:focus,.field select:focus,.field textarea:focus{
- border-color:var(--blue);box-shadow:0 0 0 3px #2563eb15
-}
-.primary{width:100%;border:0;border-radius:9px;background:var(--blue);color:white;padding:13px;font-weight:700}
-.primary:hover{background:var(--blue2)}
-.notice{border:1px solid #DCE8FF;background:#EFF5FF;color:#365D9A;padding:12px 14px;border-radius:9px;line-height:1.7;font-size:10px;margin-bottom:16px}
-.error{color:var(--red);font-size:11px;line-height:1.6;margin-top:10px}
-.success{color:var(--green);font-size:11px;margin-top:10px}
-
-/* LOGIN */
-#loginScreen{min-height:100vh;display:grid;grid-template-columns:1fr 1fr;background:white}
-.login-visual{
- background:linear-gradient(145deg,#102A56,#174A91 62%,#2563EB);
- color:white;padding:55px 9%;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden
-}
-.login-visual:after{
- content:"";position:absolute;width:500px;height:500px;border:1px solid #ffffff25;
- border-radius:50%;right:-170px;top:20%;box-shadow:0 0 0 65px #ffffff08,0 0 0 130px #ffffff05
-}
-.login-visual .brand{color:white;position:relative;z-index:1}
-.login-visual .brand-icon{background:#ffffff20;border:1px solid #ffffff35}
-.login-copy{position:relative;z-index:1;max-width:530px}
-.eyebrow{font-size:10px;letter-spacing:2px;color:#BCD2F4;font-weight:800;margin-bottom:20px}
-.login-copy h1{font-size:clamp(36px,4.1vw,58px);line-height:1.12;letter-spacing:-2px;margin:0 0 20px}
-.login-copy p{font-size:14px;line-height:1.9;color:#D7E4F8;max-width:440px}
-.login-foot{font-size:10px;letter-spacing:1px;color:#BBD0EF;position:relative;z-index:1}
-.login-panel{display:flex;align-items:center;justify-content:center;padding:30px}
-.login-box{max-width:400px;width:100%}
-.login-box .brand{margin-bottom:42px}
-.login-box h2{font-size:27px;letter-spacing:-.8px;margin:0 0 8px}
-.login-box .sub{color:var(--muted);line-height:1.7;margin:0 0 28px}
-.login-help{font-size:10px;line-height:1.7;color:var(--muted);margin-top:20px}
-
-/* APP SHELL */
-#app{min-height:100vh}
-.sidebar{
- width:var(--side);position:fixed;inset:0 auto 0 0;background:white;
- border-right:1px solid var(--line);z-index:20;display:flex;flex-direction:column
-}
-.side-brand{height:74px;display:flex;align-items:center;padding:0 21px;border-bottom:1px solid var(--line)}
-.side-brand .brand{font-size:19px}
-.side-brand .brand-icon{width:36px;height:36px}
-.workspace{padding:15px 20px;border-bottom:1px solid var(--line)}
-.workspace small{font-size:9px;letter-spacing:1.3px;color:var(--muted);font-weight:800}
-.workspace strong{font-size:12px;display:block;margin-top:7px}
-.nav-area{padding:12px;overflow:auto;flex:1}
-.nav-label{padding:15px 10px 7px;font-size:9px;color:#98A5B5;font-weight:800;letter-spacing:1.3px}
-.nav-item{
- display:flex;align-items:center;gap:11px;min-height:39px;padding:0 11px;
- border-radius:8px;color:#66758A;font-size:11px;font-weight:600;cursor:pointer;margin:3px 0
-}
-.nav-item:hover{background:#F5F7FB;color:var(--blue)}
-.nav-item.active{background:var(--light);color:var(--blue)}
-.nav-icon{width:18px;text-align:center;font-size:15px}
-.side-user{border-top:1px solid var(--line);padding:13px;display:flex;gap:9px;align-items:center}
-.avatar{width:34px;height:34px;display:grid;place-items:center;border-radius:50%;background:#E5EEFF;color:var(--blue);font-weight:800;flex-shrink:0}
-.side-user strong{display:block;font-size:10px}
-.side-user small{font-size:9px;color:var(--muted)}
-.main{margin-left:var(--side);min-height:100vh}
-.topbar{
- height:71px;background:white;border-bottom:1px solid var(--line);padding:0 27px;
- display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;gap:12px
-}
-.top-title{font-size:14px;font-weight:800}
-.crumb{font-size:10px;color:var(--muted);margin-top:5px}
-.top-right{display:flex;align-items:center;gap:9px}
-.company-select{max-width:220px;border:1px solid var(--line);border-radius:8px;padding:9px;font-size:10px;background:white}
-.top-btn{height:35px;min-width:35px;border:1px solid var(--line);background:white;border-radius:8px;color:#607089}
-.content{max-width:1600px;padding:26px 28px 45px;margin:auto}
-.page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:15px;margin-bottom:20px}
-.page-head h1{font-size:23px;letter-spacing:-.8px;margin:0 0 7px}
-.page-head p{font-size:10px;color:var(--muted);margin:0}
-.actions{display:flex;gap:8px;flex-wrap:wrap}
-.card{background:white;border:1px solid var(--line);border-radius:12px;padding:18px;min-width:0}
-.card-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:17px}
-.card-title{font-size:12px;font-weight:800}
-.card-sub{font-size:9px;color:var(--muted);margin-top:5px}
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:16px}
-.kpi{background:white;border:1px solid var(--line);border-radius:12px;padding:17px;min-width:0}
-.kpi-label{color:#718096;font-size:10px;display:flex;justify-content:space-between;gap:8px}
-.kpi-icon{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;background:var(--light);color:var(--blue)}
-.kpi-value{font-size:23px;font-weight:800;letter-spacing:-1px;margin:13px 0 7px}
-.kpi-foot{font-size:9px;color:var(--muted)}
-.chart-grid{display:grid;grid-template-columns:1.6fr 1fr;gap:13px;margin-bottom:16px}
-.chart-area{height:250px;position:relative}
-.bottom-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:13px}
-.table-wrap{overflow:auto}
-table{border-collapse:collapse;width:100%;white-space:nowrap}
-th{text-align:left;padding:11px 9px;font-size:9px;color:#98A4B3;border-bottom:1px solid var(--line)}
-td{padding:12px 9px;border-bottom:1px solid #F0F3F8;font-size:10px}
-tr:last-child td{border-bottom:0}
-.status{font-size:9px;border-radius:20px;padding:5px 8px;font-weight:700;display:inline-block}
-.status.draft{background:#F2F4F7;color:#64748B}
-.status.posted{background:#E8F7F1;color:#168461}
-.status.void{background:#FFF0F0;color:#D14A56}
-.activity{display:flex;gap:10px;padding:11px 0;border-bottom:1px solid #F0F3F8}
-.activity:last-child{border:0}
-.activity-icon{width:30px;height:30px;border-radius:8px;background:var(--light);display:grid;place-items:center}
-.activity strong{font-size:10px;display:block;margin-bottom:4px}
-.activity p{margin:0;color:var(--muted);font-size:9px;line-height:1.6}
-.footer{text-align:center;font-size:9px;color:#A1ADBA;padding:24px 0 0}
-
-/* FORMS / EMPTY */
-.setup-wrap{max-width:650px;margin:8vh auto}
-.setup-wrap h1{font-size:25px;margin:0 0 8px}
-.setup-wrap p{color:var(--muted);line-height:1.7;font-size:11px}
-.setup-card{background:white;border:1px solid var(--line);border-radius:14px;padding:24px;margin-top:20px}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.empty{padding:30px 15px;text-align:center;color:var(--muted);font-size:11px;line-height:1.8}
-.toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px}
-.toolbar input,.toolbar select{height:36px;border:1px solid var(--line);border-radius:8px;padding:0 10px;font-size:10px}
-.line-row{display:grid;grid-template-columns:1.5fr 1fr 1fr 35px;gap:7px;margin-bottom:8px;align-items:center}
-.line-row select,.line-row input{width:100%;height:37px;border:1px solid var(--line);border-radius:7px;padding:0 8px;min-width:0;font-size:10px}
-.line-row button{height:34px;border:0;border-radius:7px;color:var(--red);background:#FFF0F0}
-.modal-backdrop{position:fixed;inset:0;background:#102A5666;z-index:60;display:none;align-items:center;justify-content:center;padding:15px}
-.modal-backdrop.open{display:flex}
-.modal{width:100%;max-width:760px;max-height:92vh;overflow:auto;background:white;border-radius:14px;padding:22px}
-.modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
-.modal-head h2{font-size:17px;margin:0}
-.close{border:0;background:#F0F3F8;border-radius:7px;width:30px;height:30px}
-.toast{position:fixed;bottom:22px;right:22px;z-index:100;background:var(--navy);color:white;border-radius:9px;padding:12px 16px;font-size:10px;display:none;max-width:360px;line-height:1.6}
-.toast.show{display:block}
-.mobile-menu{display:none}
-@media(max-width:1050px){.kpis{grid-template-columns:repeat(2,1fr)}.content{padding:22px}}
-@media(max-width:760px){
- #loginScreen{grid-template-columns:1fr}.login-visual{display:none}.login-panel{min-height:100vh;padding:24px}
- .sidebar{transform:translateX(-105%);transition:.2s;box-shadow:8px 0 30px #102A5620}.sidebar.open{transform:translateX(0)}
- .main{margin-left:0}.topbar{height:63px;padding:0 12px}.mobile-menu{display:block}
- .content{padding:19px 13px}.page-head{flex-direction:column;align-items:flex-start}
- .chart-grid,.bottom-grid{grid-template-columns:1fr}.chart-area{height:225px}
- .company-select{max-width:135px}.grid2{grid-template-columns:1fr}
- .line-row{grid-template-columns:1fr 1fr}.line-row select{grid-column:1/-1}
- .kpi{padding:13px}.kpi-value{font-size:20px}
-}
+:root{--navy:#102a56;--navy2:#183d73;--blue:#3267c8;--ink:#17243a;--muted:#718096;--line:#e5eaf1;--bg:#f4f7fb;--white:#fff;--green:#13865b;--red:#c34242;--amber:#a96a12;--shadow:0 10px 30px rgba(20,42,80,.07)}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:14px}button,input,select,textarea{font:inherit}button{cursor:pointer}.hidden{display:none!important}
+#loginView{min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 15% 15%,#284e85 0,#102a56 45%,#091b38 100%)}
+.login-card{width:min(430px,100%);background:#fff;border-radius:22px;padding:34px;box-shadow:0 24px 80px #06152c66}.brand{display:flex;align-items:center;gap:12px;font-weight:800;letter-spacing:.12em;color:var(--navy);font-size:21px}.brand-mark{width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,#3976dc,#102a56);display:grid;place-items:center;color:#fff;font-weight:800}.login-card h1{font-size:25px;margin:30px 0 8px}.sub{color:var(--muted);line-height:1.6}.field{display:grid;gap:7px;margin:16px 0}.field label{font-size:12px;font-weight:700;color:#52627a}.field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:12px 13px;outline:none;background:#fff}.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px #3267c81a}.btn{border:0;border-radius:10px;padding:11px 15px;font-weight:700;background:var(--blue);color:white}.btn:hover{filter:brightness(.96)}.btn.block{width:100%;padding:13px}.btn.secondary{background:#edf2fa;color:var(--navy)}.btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--line)}.btn.danger{background:#fff0f0;color:var(--red)}.error{color:var(--red);font-size:12px;min-height:18px;margin-top:8px}
+#app{min-height:100vh}.sidebar{position:fixed;inset:0 auto 0 0;width:258px;background:var(--navy);color:#dce7f7;display:flex;flex-direction:column;z-index:20;transition:transform .25s}.side-brand{padding:22px 20px 18px;display:flex;align-items:center;gap:11px;border-bottom:1px solid #ffffff18}.side-brand .brand-mark{background:#ffffff1a;border:1px solid #ffffff28}.side-brand strong{font-size:17px;letter-spacing:.12em;color:#fff}.side-brand small{display:block;font-size:9px;color:#a9bddb;letter-spacing:.15em;margin-top:3px}.company-box{margin:14px 12px;padding:12px;border:1px solid #ffffff24;border-radius:12px;background:#ffffff0c}.company-box label{font-size:10px;color:#9fb4d2;text-transform:uppercase;letter-spacing:.1em}.company-box select{margin-top:8px;width:100%;padding:9px;border:1px solid #ffffff25;border-radius:8px;background:#173762;color:#fff;outline:0}.nav{padding:4px 10px 20px;overflow:auto;flex:1}.nav-group{margin:14px 9px 7px;font-size:9px;font-weight:800;letter-spacing:.15em;color:#8fa8ca}.nav button{width:100%;border:0;background:transparent;color:#c5d4e9;padding:10px 12px;border-radius:9px;display:flex;align-items:center;gap:11px;text-align:left;margin:2px 0;font-size:12px}.nav button:hover{background:#ffffff10;color:#fff}.nav button.active{background:#ffffff1c;color:#fff;font-weight:700}.nav .ico{width:18px;text-align:center;font-size:15px}.side-bottom{padding:13px;border-top:1px solid #ffffff18}.userline{font-size:11px;color:#c5d4e9;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:10px}
+.main{margin-left:258px;min-height:100vh}.topbar{height:68px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:10}.top-left{display:flex;align-items:center;gap:12px}.topbar h2{font-size:16px;margin:0}.top-actions{display:flex;align-items:center;gap:10px}.avatar{width:34px;height:34px;border-radius:50%;background:#e8effb;color:var(--navy);display:grid;place-items:center;font-weight:800}.mobile-menu{display:none;border:0;background:transparent;font-size:22px}.content{padding:26px 28px 50px;max-width:1600px;margin:auto}.page-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:22px}.page-head h1{font-size:23px;margin:0 0 6px}.page-head p{margin:0;color:var(--muted);font-size:12px}.head-actions{display:flex;gap:8px;flex-wrap:wrap}
+.grid{display:grid;gap:15px}.kpis{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:16px}.panel{background:#fff;border:1px solid var(--line);border-radius:14px;padding:17px;box-shadow:var(--shadow)}.kpi-label{font-size:11px;color:var(--muted);font-weight:600}.kpi-value{font-size:24px;font-weight:800;margin:10px 0 6px;letter-spacing:-.04em}.kpi-foot{font-size:10px;color:var(--muted)}.positive{color:var(--green)}.negative{color:var(--red)}.dash-grid{grid-template-columns:1.55fr 1fr}.panel-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}.panel-title h3{font-size:13px;margin:0}.panel-title span{font-size:10px;color:var(--muted)}.chart-wrap{height:260px;position:relative}.quick-grid{grid-template-columns:repeat(4,minmax(0,1fr));margin-top:15px}.quick{border:1px solid var(--line);border-radius:12px;padding:14px;background:#fff;text-align:left;color:var(--ink)}.quick:hover{border-color:#9bb6e8;transform:translateY(-1px)}.quick b{display:block;margin:8px 0 4px;font-size:12px}.quick small{font-size:10px;color:var(--muted)}.quick .ico{font-size:20px}
+.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px;background:#fff}table{border-collapse:collapse;width:100%;min-width:720px}th,td{padding:12px 14px;border-bottom:1px solid #edf0f5;text-align:left;font-size:11px;white-space:nowrap}th{background:#f8fafd;color:#687991;font-size:10px;text-transform:uppercase;letter-spacing:.04em}tr:last-child td{border-bottom:0}.empty{padding:38px 15px;text-align:center;color:var(--muted);font-size:12px}.status{display:inline-flex;padding:5px 8px;border-radius:20px;font-size:10px;font-weight:700;background:#eef2f7;color:#52627a}.status.ok{background:#e8f7ef;color:#14764f}.status.warn{background:#fff4df;color:#95600d}.status.bad{background:#ffeded;color:#b33a3a}
+.toolbar{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-bottom:13px}.toolbar input,.toolbar select{padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:#fff;min-width:170px;font-size:11px}.module-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.module-card{background:#fff;border:1px solid var(--line);border-radius:13px;padding:17px;display:flex;gap:13px;min-height:118px}.module-card .m-ico{width:38px;height:38px;border-radius:11px;background:#edf3ff;display:grid;place-items:center;font-size:18px;flex-shrink:0}.module-card h3{font-size:12px;margin:2px 0 7px}.module-card p{font-size:10px;color:var(--muted);line-height:1.55;margin:0}.module-card button{margin-top:10px;border:0;background:transparent;color:var(--blue);font-size:10px;font-weight:700;padding:0}
+.modal{position:fixed;inset:0;background:#07162c80;z-index:50;display:grid;place-items:center;padding:18px}.modal-card{width:min(620px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:16px;padding:22px;box-shadow:0 24px 80px #07162c55}.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.modal-head h3{margin:0;font-size:16px}.close{border:0;background:#f0f3f8;border-radius:8px;width:32px;height:32px;font-size:18px}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}.span2{grid-column:1/-1}.notice{background:#fff8e8;border:1px solid #f2dfb5;color:#79551b;border-radius:10px;padding:12px;font-size:11px;line-height:1.55;margin:12px 0}.toast{position:fixed;right:22px;bottom:22px;z-index:80;background:#142c4f;color:#fff;padding:12px 16px;border-radius:10px;box-shadow:var(--shadow);font-size:12px;max-width:360px}
+@media(max-width:1100px){.kpis{grid-template-columns:repeat(2,1fr)}.dash-grid{grid-template-columns:1fr}.module-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:760px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.main{margin-left:0}.mobile-menu{display:block}.topbar{padding:0 15px}.content{padding:20px 14px 35px}.top-actions .hide-mobile{display:none}.quick-grid{grid-template-columns:repeat(2,1fr)}.module-grid{grid-template-columns:1fr}.page-head{flex-direction:column}.kpis{gap:9px}.kpi-value{font-size:20px}.panel{padding:13px}.form-grid{grid-template-columns:1fr}.span2{grid-column:auto}}
 </style>
 </head>
 <body>
-
-<!-- LOGIN -->
-<section id="loginScreen">
- <div class="login-visual">
-  <div class="brand"><div class="brand-icon">F</div>FINOVA</div>
-  <div class="login-copy">
-   <div class="eyebrow">FINANCIAL INTELLIGENCE PLATFORM</div>
-   <h1>Clarity in Finance.<br>Confidence in Decisions.</h1>
-   <p>A unified financial workspace for accounting, financial visibility and better business decisions.</p>
+<section id="loginView">
+  <div class="login-card">
+    <div class="brand"><div class="brand-mark">F</div><div>FINOVA<small style="display:block;font-size:9px;letter-spacing:.17em;color:#8292aa;margin-top:3px">FINANCIAL INTELLIGENCE</small></div></div>
+    <h1>Đăng nhập hệ thống</h1>
+    <p class="sub">Nền tảng quản trị tài chính, kế toán và kiểm soát doanh nghiệp.</p>
+    <form id="loginForm">
+      <div class="field"><label>Email</label><input id="loginEmail" type="email" autocomplete="username" required placeholder="name@company.com"></div>
+      <div class="field"><label>Mật khẩu</label><input id="loginPassword" type="password" autocomplete="current-password" required placeholder="Nhập mật khẩu"></div>
+      <button class="btn block" type="submit">Đăng nhập</button>
+      <button class="btn ghost block" type="button" id="forgotBtn" style="margin-top:9px">Quên mật khẩu?</button>
+      <div class="error" id="loginError"></div>
+    </form>
+    <p class="sub" style="font-size:10px;margin-top:20px">Kết nối bằng Supabase Auth. Quyền truy cập dữ liệu được kiểm soát tại database.</p>
   </div>
-  <div class="login-foot">FINOVA · FINANCIAL ANALYTICS · ENTERPRISE EDITION</div>
- </div>
-
- <div class="login-panel">
-  <div class="login-box">
-   <div class="brand"><div class="brand-icon">F</div>FINOVA</div>
-   <h2>Welcome back</h2>
-   <p class="sub">Đăng nhập vào không gian tài chính doanh nghiệp.</p>
-
-   <form id="loginForm">
-    <div class="field">
-     <label>Email address</label>
-     <input id="email" type="email" value="tovanghia27225@gmail.com" autocomplete="username" required>
-    </div>
-    <div class="field">
-     <label>Password</label>
-     <input id="password" type="password" autocomplete="current-password" required>
-    </div>
-    <button class="primary" id="loginButton">Sign in to FINOVA</button>
-   </form>
-   <p style="font-size:10px;margin-top:15px"><a href="#" id="forgotPassword">Forgot password?</a></p>
-   <div id="loginMessage" class="error"></div>
-   <div class="login-help">
-    Tài khoản phải được cấp trong Supabase Authentication.
-    Không có đăng nhập demo hoặc mật khẩu được nhúng trong mã nguồn.
-   </div>
-  </div>
- </div>
 </section>
 
-<!-- APPLICATION -->
-<section id="app" class="hidden">
- <aside class="sidebar" id="sidebar">
-  <div class="side-brand">
-   <div class="brand"><div class="brand-icon">F</div>FINOVA</div>
-  </div>
-  <div class="workspace">
-   <small>WORKSPACE</small>
-   <strong id="workspaceName">Organization</strong>
-  </div>
-  <nav class="nav-area">
-   <div class="nav-label">OVERVIEW</div>
-   <div class="nav-item active" data-page="Dashboard"><span class="nav-icon">▦</span>Dashboard</div>
-   <div class="nav-item" data-page="Financial Analytics"><span class="nav-icon">◫</span>Financial Analytics</div>
-
-   <div class="nav-label">ACCOUNTING</div>
-   <div class="nav-item" data-page="Data Center"><span class="nav-icon">⇧</span>Data Center</div>
-   <div class="nav-item" data-page="Chứng từ & Sổ sách"><span class="nav-icon">▤</span>Chứng từ & Sổ sách</div>
-   <div class="nav-item" data-page="Mua hàng & Bán hàng"><span class="nav-icon">⇄</span>Mua hàng & Bán hàng</div>
-   <div class="nav-item" data-page="Tiền & Ngân hàng"><span class="nav-icon">▣</span>Tiền & Ngân hàng</div>
-   <div class="nav-item" data-page="Kho & Giá thành"><span class="nav-icon">▦</span>Kho & Giá thành</div>
-   <div class="nav-item" data-page="Tài sản & Phân bổ"><span class="nav-icon">▥</span>Tài sản & Phân bổ</div>
-   <div class="nav-item" data-page="Tiền lương"><span class="nav-icon">♙</span>Tiền lương</div>
-   <div class="nav-item" data-page="Thuế & Hóa đơn"><span class="nav-icon">▤</span>Thuế & Hóa đơn</div>
-
-   <div class="nav-label">CONTROL & REPORTING</div>
-   <div class="nav-item" data-page="Đối chiếu & Khóa sổ"><span class="nav-icon">☑</span>Đối chiếu & Khóa sổ</div>
-   <div class="nav-item" data-page="Báo cáo tài chính"><span class="nav-icon">▥</span>Báo cáo tài chính</div>
-   <div class="nav-item" data-page="Kiểm toán & Kiểm soát"><span class="nav-icon">◇</span>Kiểm toán & Kiểm soát</div>
-
-   <div class="nav-label">INTELLIGENCE</div>
-   <div class="nav-item" data-page="Legal Library"><span class="nav-icon">⚖</span>Legal Library</div>
-   <div class="nav-item" data-page="Rules Engine"><span class="nav-icon">⌘</span>Rules Engine</div>
-   <div class="nav-item" data-page="FINOVA AI"><span class="nav-icon">✧</span>FINOVA AI</div>
-
-   <div class="nav-label">SYSTEM</div>
-   <div class="nav-item" data-page="Thiết lập hệ thống"><span class="nav-icon">⚙</span>Thiết lập hệ thống</div>
-  </nav>
-  <div class="side-user">
-   <div class="avatar">F</div>
-   <div style="flex:1;min-width:0">
-    <strong id="userName">FINOVA User</strong>
-    <small id="userEmail"></small>
-   </div>
-   <button class="top-btn" id="logoutButton" title="Đăng xuất">↪</button>
-  </div>
- </aside>
-
- <main class="main">
-  <header class="topbar">
-   <div style="display:flex;align-items:center;gap:11px">
-    <button class="top-btn mobile-menu" id="menuButton">☰</button>
-    <div>
-     <div class="top-title" id="topTitle">Dashboard</div>
-     <div class="crumb">FINOVA / <span id="breadcrumb">Overview</span></div>
-    </div>
-   </div>
-   <div class="top-right">
-    <select class="company-select" id="companySelect"></select>
-    <button class="top-btn" id="refreshButton" title="Làm mới dữ liệu">↻</button>
-    <div class="avatar">F</div>
-   </div>
-  </header>
-  <div class="content" id="pageContent"></div>
- </main>
-</section>
-
-<!-- VOUCHER MODAL -->
-<div class="modal-backdrop" id="voucherModal">
- <div class="modal">
-  <div class="modal-head">
-   <div>
-    <h2>Tạo chứng từ kế toán</h2>
-    <div class="card-sub">Tạo nháp hoặc ghi sổ sau khi kiểm tra cân bằng.</div>
-   </div>
-   <button class="close" id="closeVoucherModal">✕</button>
-  </div>
-
-  <form id="voucherForm">
-   <div class="grid2">
-    <div class="field">
-     <label>Ngày chứng từ</label>
-     <input id="voucherDate" type="date" required>
-    </div>
-    <div class="field">
-     <label>Loại chứng từ</label>
-     <select id="voucherType">
-      <option value="general">Chứng từ tổng hợp</option>
-      <option value="receipt">Phiếu thu</option>
-      <option value="payment">Phiếu chi</option>
-      <option value="sales">Bán hàng</option>
-      <option value="purchase">Mua hàng</option>
-     </select>
-    </div>
-    <div class="field" style="grid-column:1/-1">
-     <label>Diễn giải</label>
-     <input id="voucherDescription" required placeholder="Nhập nội dung nghiệp vụ">
-    </div>
-    <div class="field" style="grid-column:1/-1">
-     <label>Đối tượng liên quan (không bắt buộc)</label>
-     <input id="voucherCounterparty" placeholder="Khách hàng / nhà cung cấp">
-    </div>
-   </div>
-
-   <div class="card" style="padding:13px;margin-bottom:14px">
-    <div class="card-head">
-     <div>
-      <div class="card-title">Chi tiết định khoản</div>
-      <div class="card-sub">Mỗi dòng chỉ nhập bên Nợ hoặc bên Có.</div>
-     </div>
-     <button class="btn" type="button" id="addLineButton">＋ Thêm dòng</button>
-    </div>
-    <div id="voucherLines"></div>
-    <div id="balancePreview" class="card-sub" style="text-align:right;margin-top:12px">Tổng Nợ: 0 · Tổng Có: 0</div>
-   </div>
-
-   <label style="display:flex;gap:8px;align-items:center;font-size:11px;margin-bottom:14px">
-    <input id="postImmediately" type="checkbox"> Ghi sổ ngay sau khi lưu nếu chứng từ hợp lệ
-   </label>
-
-   <div class="form-actions" style="display:flex;justify-content:flex-end;gap:8px">
-    <button class="btn" type="button" id="cancelVoucher">Hủy</button>
-    <button class="btn btn-primary" id="saveVoucherButton" type="submit">Lưu chứng từ</button>
-   </div>
-   <div id="voucherMessage" class="error"></div>
-  </form>
- </div>
+<div id="app" class="hidden">
+  <aside class="sidebar" id="sidebar">
+    <div class="side-brand"><div class="brand-mark">F</div><div><strong>FINOVA</strong><small>ENTERPRISE PLATFORM</small></div></div>
+    <div class="company-box"><label>Doanh nghiệp đang làm việc</label><select id="companySelect"><option value="">Đang tải...</option></select></div>
+    <nav class="nav" id="nav"></nav>
+    <div class="side-bottom"><div class="userline" id="userEmail"></div><button class="btn ghost block" id="logoutBtn" style="color:#fff;border-color:#ffffff35">Đăng xuất</button></div>
+  </aside>
+  <main class="main">
+    <header class="topbar">
+      <div class="top-left"><button class="mobile-menu" id="menuBtn">☰</button><h2 id="topTitle">Tổng quan</h2></div>
+      <div class="top-actions"><span class="hide-mobile" style="font-size:10px;color:var(--muted)" id="todayText"></span><div class="avatar" id="avatar">F</div></div>
+    </header>
+    <section class="content" id="pageContent"></section>
+  </main>
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="modal hidden" id="companyModal"><div class="modal-card">
+  <div class="modal-head"><h3>Tạo doanh nghiệp</h3><button class="close" data-close="companyModal">×</button></div>
+  <form id="companyForm">
+    <div class="field"><label>Tên pháp lý doanh nghiệp *</label><input id="companyName" required maxlength="250"></div>
+    <div class="form-grid">
+      <div class="field"><label>Mã số thuế</label><input id="taxCode"></div>
+      <div class="field"><label>Chế độ kế toán</label><select id="accountingRegime"><option value="TT99">Thông tư 99/2025/TT-BTC</option><option value="TT133">Thông tư 133/2016/TT-BTC</option><option value="CHUA_XAC_DINH">Chưa xác định</option></select></div>
+      <div class="field"><label>Đồng tiền hạch toán</label><select id="currencyCode"><option value="VND">VND</option><option value="USD">USD</option></select></div>
+      <div class="field"><label>Tháng bắt đầu năm tài chính</label><select id="fiscalStart"><option value="1">Tháng 1</option><option value="4">Tháng 4</option><option value="7">Tháng 7</option><option value="10">Tháng 10</option></select></div>
+    </div>
+    <div class="notice">Người tạo doanh nghiệp cần được database tự động gán làm Owner. Nếu RLS/trigger chưa được cấu hình đúng, thao tác này sẽ bị từ chối an toàn.</div>
+    <button class="btn block" type="submit">Tạo doanh nghiệp</button><div class="error" id="companyError"></div>
+  </form>
+</div></div>
+
+<div class="modal hidden" id="voucherModal"><div class="modal-card">
+  <div class="modal-head"><h3>Tạo chứng từ nháp</h3><button class="close" data-close="voucherModal">×</button></div>
+  <form id="voucherForm">
+    <div class="form-grid">
+      <div class="field"><label>Số chứng từ *</label><input id="voucherNo" required></div>
+      <div class="field"><label>Ngày chứng từ *</label><input id="voucherDate" type="date" required></div>
+      <div class="field"><label>Loại chứng từ</label><select id="voucherType"><option value="general">Chứng từ chung</option><option value="receipt">Phiếu thu</option><option value="payment">Phiếu chi</option><option value="sales">Bán hàng</option><option value="purchase">Mua hàng</option><option value="bank">Ngân hàng</option></select></div>
+      <div class="field"><label>Kỳ kế toán</label><select id="voucherPeriod" required></select></div>
+      <div class="field span2"><label>Nội dung *</label><input id="voucherDescription" required></div>
+    </div>
+    <div class="notice">Phiên bản giao diện này tạo chứng từ nháp ở bảng lõi. Chỉ ghi sổ sau khi đã có dòng định khoản hợp lệ và quy tắc kiểm tra ở database.</div>
+    <button class="btn block" type="submit">Lưu chứng từ nháp</button><div class="error" id="voucherError"></div>
+  </form>
+</div></div>
+<div id="toast" class="toast hidden"></div>
 
 <script>
-/* =====================================================
-   FINOVA CORE V1 - CONNECTED TO SUPABASE
-   Frontend key: Publishable key only.
-   Never put Supabase Secret / Service Role keys here.
-===================================================== */
-
-const SUPABASE_URL = "https://tstfirzjyyawnmtyanej.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_f0UkdzFrl3m6VNb6qK11mw_X77N8n4p";
-
-const $ = id => document.getElementById(id);
-const configured =
-  SUPABASE_URL.startsWith("https://") &&
-  !SUPABASE_URL.includes("YOUR_") &&
-  SUPABASE_PUBLISHABLE_KEY.startsWith("sb_publishable_");
-
-let db = null;
-let session = null;
-let activeCompany = null;
-let companyMemberships = [];
-let accounts = [];
-let periods = [];
-let dashboardChart = null;
-let mixChart = null;
-let currentPage = "Dashboard";
-
-if (window.supabase) {
-  // Create the client even before configuration so the page can show
-  // a helpful configuration message instead of silently failing.
-  if (configured) {
-    db = window.supabase.createClient(
-      SUPABASE_URL,
-      SUPABASE_PUBLISHABLE_KEY
-    );
-  }
-}
-
-/* ---------- COMMON ---------- */
-function esc(value) {
-  return String(value ?? "").replace(/[&<>"']/g, c => ({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-  })[c]);
-}
-
-function money(value) {
-  return new Intl.NumberFormat("vi-VN",{
-    maximumFractionDigits:0
-  }).format(Number(value || 0)) + " ₫";
-}
-
-function compact(value) {
-  value = Number(value || 0);
-  if (Math.abs(value) >= 1e9) return (value/1e9).toFixed(2) + " tỷ";
-  if (Math.abs(value) >= 1e6) return (value/1e6).toFixed(1) + " tr";
-  return money(value);
-}
-
-function toast(message) {
-  const el = $("toast");
-  el.textContent = message;
-  el.classList.add("show");
-  clearTimeout(window.__toastTimer);
-  window.__toastTimer = setTimeout(()=>el.classList.remove("show"),3500);
-}
-
-function showLoginMessage(message,success=false) {
-  $("loginMessage").textContent = message || "";
-  $("loginMessage").className = success ? "success" : "error";
-}
-
-function showApp() {
-  $("loginScreen").classList.add("hidden");
-  $("app").classList.remove("hidden");
-}
-
-function showLogin() {
-  $("app").classList.add("hidden");
-  $("loginScreen").classList.remove("hidden");
-}
-
-/* ---------- AUTH ---------- */
-$("loginForm").addEventListener("submit",async event=>{
-  event.preventDefault();
-
-  if (!db) {
-    showLoginMessage(
-      "Chưa cấu hình Supabase. Hãy nhập Project URL và Publishable Key trong code."
-    );
-    return;
-  }
-
-  const email = $("email").value.trim();
-  const password = $("password").value;
-  const button = $("loginButton");
-
-  button.disabled = true;
-  button.textContent = "Signing in...";
-
-  try {
-    const {data,error} = await db.auth.signInWithPassword({email,password});
-    if (error) throw error;
-
-    session = data.session;
-    await bootstrap();
-  } catch(error) {
-    showLoginMessage(error.message || "Đăng nhập không thành công.");
-  } finally {
-    button.disabled = false;
-    button.textContent = "Sign in to FINOVA";
-  }
-});
-
-$("forgotPassword").addEventListener("click",async event=>{
-  event.preventDefault();
-
-  if (!db) {
-    showLoginMessage("Bạn cần cấu hình Supabase trước.");
-    return;
-  }
-
-  const email = $("email").value.trim();
-  if (!email) {
-    showLoginMessage("Nhập email để nhận liên kết đặt lại mật khẩu.");
-    return;
-  }
-
-  try {
-    const {error} = await db.auth.resetPasswordForEmail(email,{
-      redirectTo:window.location.href
-    });
-    if (error) throw error;
-    showLoginMessage("Đã gửi yêu cầu khôi phục mật khẩu. Hãy kiểm tra email.",true);
-  } catch(error) {
-    showLoginMessage(error.message);
-  }
-});
-
-$("logoutButton").addEventListener("click",async()=>{
-  if (db) {
-    const {error} = await db.auth.signOut();
-    if (error) return toast(error.message);
-  }
-  session = null;
-  activeCompany = null;
-  showLogin();
-});
-
-async function restoreSession() {
-  if (!db) {
-    showLoginMessage("Cần cấu hình SUPABASE_URL và SUPABASE_PUBLISHABLE_KEY trước khi đăng nhập.");
-    return;
-  }
-
-  try {
-    const {data,error} = await db.auth.getSession();
-    if (error) throw error;
-    if (data.session) {
-      session = data.session;
-      await bootstrap();
-    }
-  } catch(error) {
-    showLoginMessage(error.message);
-  }
-}
-
-/* ---------- COMPANY ---------- */
-async function bootstrap() {
-  if (!session?.user) return;
-
-  showApp();
-  $("userEmail").textContent = session.user.email || "";
-  $("userName").textContent =
-    (session.user.email || "FINOVA").split("@")[0];
-
-  await loadUserCompanies();
-}
-
-async function loadUserCompanies() {
-  const {data:members,error:memberError} = await db
-    .from("fnv_company_members")
-    .select("company_id,role")
-    .eq("user_id",session.user.id);
-
-  if (memberError) {
-    return renderError("Không đọc được quyền doanh nghiệp: " + memberError.message);
-  }
-
-  companyMemberships = members || [];
-
-  if (!companyMemberships.length) {
-    renderCompanySetup();
-    return;
-  }
-
-  const ids = companyMemberships.map(x=>x.company_id);
-
-  const {data:companies,error} = await db
-    .from("fnv_companies")
-    .select("id,legal_name,tax_code,accounting_regime,currency_code")
-    .in("id",ids)
-    .order("created_at");
-
-  if (error) return renderError(error.message);
-
-  if (!companies?.length) {
-    renderError("Không tìm thấy doanh nghiệp được cấp quyền.");
-    return;
-  }
-
-  const savedCompanyId = sessionStorage.getItem("fnv_active_company");
-  activeCompany =
-    companies.find(c=>c.id===savedCompanyId) || companies[0];
-
-  $("companySelect").innerHTML = companies.map(c=>
-    `<option value="${esc(c.id)}">${esc(c.legal_name)}</option>`
-  ).join("");
-
-  $("companySelect").value = activeCompany.id;
-  $("workspaceName").textContent = activeCompany.legal_name;
-
-  await loadMasterData();
-  await ensureCurrentYearPeriods();
-  navigate("Dashboard");
-}
-
-$("companySelect").addEventListener("change",async()=>{
-  const id = $("companySelect").value;
-  const member = companyMemberships.find(m=>m.company_id===id);
-  if (!member) return;
-
-  const {data,error} = await db
-    .from("fnv_companies")
-    .select("id,legal_name,tax_code,accounting_regime,currency_code")
-    .eq("id",id)
-    .single();
-
-  if (error) return toast(error.message);
-
-  activeCompany = data;
-  sessionStorage.setItem("fnv_active_company",id);
-  $("workspaceName").textContent = data.legal_name;
-
-  await loadMasterData();
-  navigate(currentPage);
-});
-
-function renderCompanySetup() {
-  $("pageContent").innerHTML = `
-    <div class="setup-wrap">
-      <div class="brand"><div class="brand-icon">F</div>FINOVA</div>
-      <h1 style="margin-top:35px">Thiết lập doanh nghiệp</h1>
-      <p>Đây là lần đầu tài khoản đăng nhập FINOVA. Tạo doanh nghiệp để khởi tạo không gian kế toán riêng.</p>
-
-      <div class="setup-card">
-        <form id="companyForm">
-          <div class="field">
-            <label>Tên pháp lý doanh nghiệp</label>
-            <input id="companyName" required placeholder="Ví dụ: Công ty TNHH ABC">
-          </div>
-          <div class="grid2">
-            <div class="field">
-              <label>Mã số thuế</label>
-              <input id="taxCode" placeholder="Không bắt buộc">
-            </div>
-            <div class="field">
-              <label>Chế độ kế toán dự kiến</label>
-              <select id="regime">
-                <option value="CHUA_XAC_DINH">Chưa xác định</option>
-                <option value="TT99/2025/TT-BTC">Doanh nghiệp - TT99</option>
-                <option value="TT133/2016/TT-BTC">Doanh nghiệp nhỏ và vừa - TT133</option>
-                <option value="TT58/2026/TT-BTC">Doanh nghiệp siêu nhỏ - TT58</option>
-                <option value="TT152/2025/TT-BTC">Hộ/cá nhân kinh doanh - TT152</option>
-                <option value="TT71/2024/TT-BTC">Hợp tác xã - TT71</option>
-                <option value="TT24/2024/TT-BTC">Đơn vị hành chính, sự nghiệp - TT24</option>
-                <option value="OTHER">Chế độ khác / cần rà soát</option>
-              </select>
-            </div>
-          </div>
-          <button class="primary" id="createCompanyButton">Create workspace</button>
-          <div id="companyMessage" class="error"></div>
-        </form>
-      </div>
-
-      <p class="small muted">
-        Chế độ kế toán cần được người có chuyên môn xác nhận trước khi sử dụng nghiệp vụ thực tế.
-      </p>
-    </div>
-  `;
-
-  $("companyForm").addEventListener("submit",createCompany);
-}
-
-
-async function createCompany(event) {
-  event.preventDefault();
-
-  const name = $("companyName").value.trim();
-  const button = $("createCompanyButton");
-  const message = $("companyMessage");
-
-  message.textContent = "";
-
-  if (!name) {
-    message.textContent = "Vui lòng nhập tên doanh nghiệp.";
-    return;
-  }
-
-  button.disabled = true;
-  button.textContent = "Đang kiểm tra tài khoản...";
-
-  try {
-    // Lấy tài khoản đã xác thực trực tiếp từ Supabase
-    const { data, error: authError } = await db.auth.getUser();
-
-    if (authError) throw authError;
-
-    const user = data.user;
-
-    if (!user) {
-      throw new Error("Bạn chưa đăng nhập hợp lệ. Hãy đăng nhập lại.");
-    }
-
-    // Tạo hồ sơ doanh nghiệp với UID thật
-    const companyPayload = {
-      legal_name: name,
-      tax_code: $("taxCode").value.trim() || null,
-      accounting_regime: $("regime").value,
-      currency_code: "VND",
-      fiscal_year_start: 1,
-      created_by: user.id
-    };
-
-    button.textContent = "Đang tạo doanh nghiệp...";
-
-    const { data: company, error } = await db
-      .from("fnv_companies")
-      .insert(companyPayload)
-      .select()
-      .single();
-
-    if (error) throw error;
-
-    activeCompany = company;
-
-    sessionStorage.setItem("fnv_active_company", company.id);
-
-    // Khởi tạo kỳ kế toán và danh mục tài khoản
-    try {
-      await initializeCompany(
-        company.id,
-        new Date().getFullYear()
-      );
-    } catch (setupError) {
-      throw new Error(
-        "Doanh nghiệp đã tạo thành công nhưng khởi tạo dữ liệu ban đầu chưa hoàn tất: " +
-        setupError.message
-      );
-    }
-
-    await loadUserCompanies();
-
-    toast("Tạo doanh nghiệp thành công!");
-
-  } catch (error) {
-    console.error("FINOVA company creation:", error);
-    message.textContent = error.message || "Không thể tạo doanh nghiệp.";
-  } finally {
-    button.disabled = false;
-    button.textContent = "Create workspace";
-  }
-}
-
-/* ---------- MASTER DATA ---------- */
-const starterAccounts = [
-  ["111","Tiền mặt","asset","debit",true],
-  ["112","Tiền gửi ngân hàng","asset","debit",true],
-  ["131","Phải thu khách hàng","asset","debit",false],
-  ["156","Hàng hóa","asset","debit",false],
-  ["211","Tài sản cố định","asset","debit",false],
-  ["331","Phải trả người bán","liability","credit",false],
-  ["3331","Thuế GTGT phải nộp","liability","credit",false],
-  ["411","Vốn đầu tư của chủ sở hữu","equity","credit",false],
-  ["511","Doanh thu bán hàng và cung cấp dịch vụ","revenue","credit",false],
-  ["632","Giá vốn hàng bán","expense","debit",false],
-  ["635","Chi phí tài chính","expense","debit",false],
-  ["641","Chi phí bán hàng","expense","debit",false],
-  ["642","Chi phí quản lý doanh nghiệp","expense","debit",false],
-  ["821","Chi phí thuế TNDN","expense","debit",false],
-  ["911","Xác định kết quả kinh doanh","other","credit",false]
+/* FINOVA CONFIG: giữ URL và publishable key của project Supabase hiện tại tại đây.
+   Không bao giờ đặt service_role key trong index.html. */
+const SUPABASE_URL = "https://YOUR_PROJECT.supabase.co";
+const SUPABASE_ANON_KEY = "YOUR_SUPABASE_PUBLISHABLE_OR_ANON_KEY";
+const db = window.supabase?.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const MODULES = [
+ {group:"WORKSPACE",items:[
+  ["dashboard","▦","Tổng quan","Dashboard tài chính và cảnh báo"],
+  ["vouchers","▤","Chứng từ kế toán","Phiếu thu, phiếu chi, chứng từ chung"],
+  ["general-ledger","▥","Sổ kế toán","Nhật ký chung, sổ cái, sổ chi tiết"],
+  ["accounts","⊞","Hệ thống tài khoản","Danh mục và cấu hình tài khoản"]
+ ]},
+ {group:"FINANCIAL OPERATIONS",items:[
+  ["sales","↗","Bán hàng & phải thu","Đơn hàng, doanh thu, hóa đơn, công nợ"],
+  ["purchases","↙","Mua hàng & phải trả","Đề nghị mua, hóa đơn đầu vào, nhà cung cấp"],
+  ["cash-bank","▣","Tiền & ngân hàng","Quỹ, giao dịch ngân hàng, đối chiếu"],
+  ["inventory","▤","Kho hàng","Nhập xuất tồn, kiểm kê, điều chuyển"],
+  ["costing","◫","Giá thành","Tập hợp và phân bổ chi phí"],
+  ["assets","▧","Tài sản & CCDC","Ghi tăng, khấu hao, phân bổ, thanh lý"],
+  ["payroll","♙","Tiền lương","Bảng lương, bảo hiểm, hạch toán lương"]
+ ]},
+ {group:"TAX & REPORTING",items:[
+  ["tax","▱","Thuế & hóa đơn","VAT, TNDN, TNCN, hóa đơn"],
+  ["reports","▥","Báo cáo tài chính","BCTC, báo cáo quản trị, thuyết minh"],
+  ["closing","◷","Đối chiếu & khóa sổ","Phân bổ, kết chuyển, khóa kỳ"],
+  ["budget","⌁","Ngân sách & dự báo","Ngân sách, dòng tiền, kế hoạch"]
+ ]},
+ {group:"GOVERNANCE & AUDIT",items:[
+  ["approvals","✓","Phê duyệt","Luồng duyệt nghiệp vụ"],
+  ["controls","⛨","Kiểm soát nội bộ","Phân nhiệm, kiểm tra và cảnh báo"],
+  ["audit","◎","Kiểm toán","Hồ sơ, bằng chứng, phát hiện"],
+  ["risk","△","Quản lý rủi ro","Ma trận rủi ro và kế hoạch xử lý"],
+  ["audit-log","≡","Nhật ký hệ thống","Lịch sử thao tác và truy vết"]
+ ]},
+ {group:"INTELLIGENCE & ADMIN",items:[
+  ["legal","⚖","Thư viện pháp luật","Luật kế toán, thuế và văn bản liên quan"],
+  ["ai","✦","FINOVA AI","Trợ lý kế toán, thuế và kiểm toán"],
+  ["users","♧","Người dùng & phân quyền","Thành viên, vai trò và quyền truy cập"],
+  ["settings","⚙","Thiết lập doanh nghiệp","Thông tin, chế độ kế toán, kỳ kế toán"]
+ ]}
 ];
-
-function monthPeriods(companyId,year) {
-  return Array.from({length:12},(_,i)=>{
-    const month = i+1;
-    const start = `${year}-${String(month).padStart(2,"0")}-01`;
-    const last = new Date(Date.UTC(year,month,0)).getUTCDate();
-    const end = `${year}-${String(month).padStart(2,"0")}-${String(last).padStart(2,"0")}`;
-    return {
-      company_id:companyId,
-      fiscal_year:year,
-      period_number:month,
-      starts_on:start,
-      ends_on:end,
-      status:"open"
-    };
-  });
-}
-
-async function initializeCompany(companyId,year) {
-  const accountRows = starterAccounts.map(a=>({
-    company_id:companyId,
-    code:a[0],
-    name:a[1],
-    account_class:a[2],
-    normal_side:a[3],
-    is_cash_equivalent:a[4],
-    is_active:true
-  }));
-
-  const {error:accountError} = await db
-    .from("fnv_accounts")
-    .upsert(accountRows,{
-      onConflict:"company_id,code",
-      ignoreDuplicates:true
-    });
-
-  if (accountError) throw accountError;
-
-  const {error:periodError} = await db
-    .from("fnv_accounting_periods")
-    .upsert(monthPeriods(companyId,year),{
-      onConflict:"company_id,fiscal_year,period_number",
-      ignoreDuplicates:true
-    });
-
-  if (periodError) throw periodError;
-}
-
-async function ensureCurrentYearPeriods() {
-  if (!activeCompany) return;
-
-  const year = new Date().getFullYear();
-  const {data,error} = await db
-    .from("fnv_accounting_periods")
-    .select("id")
-    .eq("company_id",activeCompany.id)
-    .eq("fiscal_year",year);
-
-  if (error) return;
-  if (data.length === 12) return;
-
-  const role = companyMemberships.find(m=>m.company_id===activeCompany.id)?.role;
-  if (!["owner","admin"].includes(role)) return;
-
-  const existing = new Set((data||[]).map(x=>x.id));
-  // Upsert is idempotent; existing periods are not replaced.
-  await db.from("fnv_accounting_periods").upsert(
-    monthPeriods(activeCompany.id,year),
-    {onConflict:"company_id,fiscal_year,period_number",ignoreDuplicates:true}
-  );
-}
-
-async function loadMasterData() {
-  if (!activeCompany) return;
-
-  const [accountResult,periodResult] = await Promise.all([
-    db.from("fnv_accounts")
-      .select("id,code,name,account_class,normal_side,is_cash_equivalent,is_active")
-      .eq("company_id",activeCompany.id)
-      .eq("is_active",true)
-      .order("code"),
-
-    db.from("fnv_accounting_periods")
-      .select("id,fiscal_year,period_number,starts_on,ends_on,status")
-      .eq("company_id",activeCompany.id)
-      .order("starts_on")
-  ]);
-
-  if (accountResult.error) throw accountResult.error;
-  if (periodResult.error) throw periodResult.error;
-
-  accounts = accountResult.data || [];
-  periods = periodResult.data || [];
-}
-
-/* ---------- NAVIGATION ---------- */
-document.querySelectorAll(".nav-item").forEach(item=>{
-  item.addEventListener("click",()=>navigate(item.dataset.page));
-});
-
-$("menuButton").addEventListener("click",()=>{
-  $("sidebar").classList.toggle("open");
-});
-
-$("refreshButton").addEventListener("click",async()=>{
-  try {
-    await loadMasterData();
-    navigate(currentPage);
-    toast("Đã tải lại dữ liệu từ Supabase.");
-  } catch(error) {
-    toast(error.message);
-  }
-});
-
-function navigate(page) {
-  currentPage = page;
-
-  document.querySelectorAll(".nav-item").forEach(item=>{
-    item.classList.toggle("active",item.dataset.page===page);
-  });
-
-  $("topTitle").textContent = page;
-  $("breadcrumb").textContent = page;
-  $("sidebar").classList.remove("open");
-
-  if (page==="Dashboard" || page==="Financial Analytics") {
-    renderDashboard();
-  } else if (page==="Chứng từ & Sổ sách") {
-    renderVouchers();
-  } else if (page==="Thiết lập hệ thống") {
-    renderSettings();
-  } else {
-    renderComingSoon(page);
-  }
-}
-
-/* ---------- DASHBOARD ---------- */
-async function renderDashboard() {
-  if (!activeCompany) return;
-
-  $("pageContent").innerHTML = `<div class="card">Đang tải số liệu từ PostgreSQL...</div>`;
-
-  const year = new Date().getFullYear();
-  const from = `${year}-01-01`;
-  const to = `${year}-12-31`;
-
-  const [summaryResult,voucherResult] = await Promise.all([
-    db.rpc("fnv_dashboard",{
-      p_company_id:activeCompany.id,
-      p_from:from,
-      p_to:to
-    }),
-    db.from("fnv_vouchers")
-      .select("id,voucher_no,voucher_date,description,status,voucher_type,created_at")
-      .eq("company_id",activeCompany.id)
-      .order("voucher_date",{ascending:false})
-      .limit(8)
-  ]);
-
-  if (summaryResult.error) {
-    return renderError("Không tải được Financial Analytics: "+summaryResult.error.message);
-  }
-  if (voucherResult.error) {
-    return renderError("Không tải được danh sách chứng từ: "+voucherResult.error.message);
-  }
-
-  const summary = summaryResult.data || [];
-  const vouchers = voucherResult.data || [];
-
-  const revenue = summary.reduce((s,r)=>s+Number(r.revenue||0),0);
-  const expenses = summary.reduce((s,r)=>s+Number(r.expenses||0),0);
-  const cashNet = summary.reduce((s,r)=>s+Number(r.cash_net||0),0);
-  const voucherCount = summary.reduce((s,r)=>s+Number(r.voucher_count||0),0);
-
-  $("pageContent").innerHTML = `
-    <div class="page-head">
-      <div>
-        <h1>Financial Overview</h1>
-        <p>${esc(activeCompany.legal_name)} · Dữ liệu chứng từ đã ghi sổ · ${year}</p>
-      </div>
-      <div class="actions">
-        <button class="btn" onclick="navigate('Chứng từ & Sổ sách')">View vouchers</button>
-        <button class="btn btn-primary" onclick="openVoucherModal()">＋ Tạo chứng từ</button>
-      </div>
-    </div>
-
-    <div class="notice">
-      Số liệu được tổng hợp từ các chứng từ có trạng thái <strong>posted</strong>
-      và tài khoản có phân loại doanh thu, chi phí hoặc tiền.
-      Đây chưa phải báo cáo tài chính pháp định.
-    </div>
-
-    <section class="kpis">
-      ${kpi("Revenue",revenue,"Tổng phát sinh Có trừ Nợ trên tài khoản doanh thu","↗","#EFF5FF","#2563EB")}
-      ${kpi("Expenses",expenses,"Tổng phát sinh Nợ trừ Có trên tài khoản chi phí","↘","#FFF4E8","#D9902F")}
-      ${kpi("Revenue less expenses",revenue-expenses,"Chỉ số quản trị sơ bộ, chưa phải lợi nhuận pháp định","◈","#EAF8F2","#15966F")}
-      ${kpi("Net cash movement",cashNet,"Biến động thuần các tài khoản được đánh dấu tiền","▣","#F2EEFF","#8264D8")}
-    </section>
-
-    ${accounts.length===0 ? `
-      <div class="notice">
-        Doanh nghiệp chưa có danh mục tài khoản. Khởi tạo danh mục mẫu để bắt đầu kiểm thử.
-        <button class="btn btn-primary" onclick="initializeForActiveCompany()">Khởi tạo tài khoản mẫu</button>
-      </div>` : ""}
-
-    <section class="chart-grid">
-      <div class="card">
-        <div class="card-head">
-          <div><div class="card-title">Revenue & Expenses</div><div class="card-sub">Monthly posted accounting entries · ${year}</div></div>
-          <span class="status posted">POSTED DATA</span>
-        </div>
-        <div class="chart-area"><canvas id="financeChart"></canvas></div>
-      </div>
-      <div class="card">
-        <div class="card-head">
-          <div><div class="card-title">Financial Summary</div><div class="card-sub">Year-to-date</div></div>
-        </div>
-        <div class="chart-area"><canvas id="mixChart"></canvas></div>
-        <div class="card-sub" style="text-align:center">${voucherCount} chứng từ có phát sinh đã ghi sổ</div>
-      </div>
-    </section>
-
-    <section class="bottom-grid">
-      <div class="card">
-        <div class="card-head">
-          <div><div class="card-title">Recent Vouchers</div><div class="card-sub">Chứng từ gần đây</div></div>
-          <button class="btn" onclick="navigate('Chứng từ & Sổ sách')">View all →</button>
-        </div>
-        <div class="table-wrap">${voucherTable(vouchers,false)}</div>
-      </div>
-      <div class="card">
-        <div class="card-head"><div><div class="card-title">Workspace status</div><div class="card-sub">FINOVA Core V1</div></div></div>
-        <div class="activity"><div class="activity-icon">✓</div><div><strong>Supabase Auth</strong><p>Tài khoản đang đăng nhập qua Supabase Auth.</p></div></div>
-        <div class="activity"><div class="activity-icon">▤</div><div><strong>PostgreSQL</strong><p>Chứng từ và định khoản được lưu tại cơ sở dữ liệu.</p></div></div>
-        <div class="activity"><div class="activity-icon">◇</div><div><strong>RLS enabled</strong><p>Truy cập dữ liệu được kiểm soát theo thành viên doanh nghiệp.</p></div></div>
-        <div class="activity"><div class="activity-icon">⚖</div><div><strong>Double-entry control</strong><p>Trigger cơ sở dữ liệu kiểm tra cân bằng trước khi ghi sổ.</p></div></div>
-      </div>
-    </section>
-
-    <div class="footer">FINOVA · Financial Intelligence Platform · Core V1</div>
-  `;
-
-  drawDashboardCharts(summary,year);
-}
-
-function kpi(label,value,description,symbol,bg,color) {
-  return `
-    <div class="kpi">
-      <div class="kpi-label">${esc(label)}<span class="kpi-icon" style="background:${bg};color:${color}">${symbol}</span></div>
-      <div class="kpi-value">${compact(value)}</div>
-      <div class="kpi-foot">${esc(description)}</div>
-    </div>`;
-}
-
-function drawDashboardCharts(rows,year) {
-  if (typeof Chart==="undefined") return;
-
-  if (dashboardChart) dashboardChart.destroy();
-  if (mixChart) mixChart.destroy();
-
-  const map = new Map(rows.map(r=>[
-    Number(r.month_start.slice(5,7)),
-    r
-  ]));
-
-  const labels = Array.from({length:12},(_,i)=>
-    new Date(year,i,1).toLocaleString("en",{month:"short"})
-  );
-
-  const rev = Array.from({length:12},(_,i)=>Number(map.get(i+1)?.revenue||0)/1e9);
-  const exp = Array.from({length:12},(_,i)=>Number(map.get(i+1)?.expenses||0)/1e9);
-
-  dashboardChart = new Chart($("financeChart"),{
-    type:"line",
-    data:{labels,datasets:[
-      {label:"Revenue",data:rev,borderColor:"#2563EB",backgroundColor:"#2563EB12",fill:true,tension:.35,borderWidth:2.5,pointRadius:2},
-      {label:"Expenses",data:exp,borderColor:"#A8BAD7",backgroundColor:"#A8BAD710",fill:true,tension:.35,borderWidth:2,pointRadius:2}
-    ]},
-    options:{
-      responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{position:"top",align:"end",labels:{usePointStyle:true,boxWidth:7,font:{size:9}}}},
-      scales:{
-        x:{grid:{display:false},ticks:{font:{size:9},color:"#8290A5"}},
-        y:{beginAtZero:true,grid:{color:"#F0F3F8"},ticks:{font:{size:9},color:"#8290A5",callback:v=>v+"B"}}
-      }
-    }
-  });
-
-  const sumRevenue=rev.reduce((a,b)=>a+b,0);
-  const sumExpense=exp.reduce((a,b)=>a+b,0);
-
-  mixChart = new Chart($("mixChart"),{
-    type:"doughnut",
-    data:{
-      labels:["Revenue","Expenses"],
-      datasets:[{data:[Math.max(sumRevenue,0),Math.max(sumExpense,0)],backgroundColor:["#2563EB","#BDD0ED"],borderWidth:0}]
-    },
-    options:{responsive:true,maintainAspectRatio:false,cutout:"72%",plugins:{legend:{position:"bottom",labels:{usePointStyle:true,boxWidth:8,font:{size:9}}}}}
-  });
-}
-
-/* ---------- VOUCHERS ---------- */
-async function renderVouchers() {
-  $("pageContent").innerHTML = `<div class="card">Đang tải chứng từ...</div>`;
-
-  const {data,error} = await db
-    .from("fnv_vouchers")
-    .select("id,voucher_no,voucher_date,description,voucher_type,status,created_at")
-    .eq("company_id",activeCompany.id)
-    .order("voucher_date",{ascending:false})
-    .limit(200);
-
-  if (error) return renderError(error.message);
-
-  const rows = data || [];
-
-  $("pageContent").innerHTML = `
-    <div class="page-head">
-      <div><h1>Chứng từ & Sổ sách</h1><p>Chứng từ được lưu trực tiếp trong PostgreSQL.</p></div>
-      <div class="actions"><button class="btn btn-primary" onclick="openVoucherModal()">＋ Tạo chứng từ</button></div>
-    </div>
-
-    <div class="notice">
-      Chứng từ nháp có thể xóa. Chứng từ đã ghi sổ không được sửa hoặc xóa trong Core V1.
-      Việc điều chỉnh phải được triển khai bằng quy trình chứng từ điều chỉnh/đảo theo quy định.
-    </div>
-
-    <div class="card">
-      <div class="toolbar">
-        <input id="voucherSearch" placeholder="Tìm mã hoặc diễn giải...">
-        <select id="voucherStatus">
-          <option value="all">Tất cả trạng thái</option>
-          <option value="draft">Nháp</option>
-          <option value="posted">Đã ghi sổ</option>
-          <option value="void">Đã hủy</option>
-        </select>
-      </div>
-      <div class="table-wrap" id="voucherTable">${voucherTable(rows,true)}</div>
-      <div class="card-sub" id="voucherCount" style="margin-top:12px">${rows.length} chứng từ hiển thị · tối đa 200 dòng gần nhất</div>
-    </div>
-  `;
-
-  $("voucherSearch").addEventListener("input",()=>filterVoucherTable(rows));
-  $("voucherStatus").addEventListener("change",()=>filterVoucherTable(rows));
-}
-
-function voucherTable(rows,actions) {
-  if (!rows.length) {
-    return `<div class="empty">Chưa có chứng từ.<br>Chọn “Tạo chứng từ” để lập chứng từ đầu tiên.</div>`;
-  }
-
-  return `
-   <table>
-    <thead><tr><th>MÃ CHỨNG TỪ</th><th>NGÀY</th><th>DIỄN GIẢI</th><th>TRẠNG THÁI</th>${actions?"<th>THAO TÁC</th>":""}</tr></thead>
-    <tbody>
-    ${rows.map(v=>`
-      <tr>
-       <td><strong>${esc(v.voucher_no)}</strong><div class="card-sub">${esc(v.voucher_type)}</div></td>
-       <td>${esc(v.voucher_date)}</td>
-       <td>${esc(v.description)}</td>
-       <td><span class="status ${esc(v.status)}">${statusText(v.status)}</span></td>
-       ${actions?`<td>
-         ${v.status==="draft"?`
-          <button class="btn" onclick="postVoucher('${esc(v.id)}')">Ghi sổ</button>
-          <button class="btn btn-danger" onclick="deleteDraft('${esc(v.id)}')">Xóa nháp</button>
-         `:"—"}
-       </td>`:""}
-      </tr>
-    `).join("")}
-    </tbody>
-   </table>`;
-}
-
-function statusText(status) {
-  return ({draft:"Nháp",posted:"Đã ghi sổ",void:"Đã hủy"})[status] || status;
-}
-
-function filterVoucherTable(rows) {
-  const q = $("voucherSearch").value.toLowerCase();
-  const status = $("voucherStatus").value;
-
-  const filtered = rows.filter(v=>{
-    const matchText = v.voucher_no.toLowerCase().includes(q) ||
-      v.description.toLowerCase().includes(q);
-    return matchText && (status==="all" || v.status===status);
-  });
-
-  $("voucherTable").innerHTML = voucherTable(filtered,true);
-  $("voucherCount").textContent = `${filtered.length} / ${rows.length} chứng từ`;
-}
-
-async function postVoucher(id) {
-  if (!confirm("Ghi sổ chứng từ này? Sau khi ghi sổ, chứng từ sẽ bị khóa chỉnh sửa.")) return;
-
-  const {error} = await db
-    .from("fnv_vouchers")
-    .update({status:"posted"})
-    .eq("id",id)
-    .eq("company_id",activeCompany.id)
-    .eq("status","draft");
-
-  if (error) {
-    toast("Không ghi sổ được: " + error.message);
-    return;
-  }
-
-  toast("Chứng từ đã được ghi sổ.");
-  await renderVouchers();
-}
-
-async function deleteDraft(id) {
-  if (!confirm("Xóa chứng từ nháp này?")) return;
-
-  const {error} = await db
-    .from("fnv_vouchers")
-    .delete()
-    .eq("id",id)
-    .eq("company_id",activeCompany.id)
-    .eq("status","draft");
-
-  if (error) return toast(error.message);
-
-  toast("Đã xóa chứng từ nháp.");
-  await renderVouchers();
-}
-
-/* ---------- VOUCHER FORM ---------- */
-function accountOptions() {
-  return `<option value="">Chọn tài khoản</option>` + accounts.map(a=>
-    `<option value="${esc(a.id)}">${esc(a.code)} · ${esc(a.name)}</option>`
-  ).join("");
-}
-
-function addVoucherLine() {
-  const row = document.createElement("div");
-  row.className = "line-row";
-  row.innerHTML = `
-    <select class="line-account" required>${accountOptions()}</select>
-    <select class="line-side"><option value="debit">Nợ</option><option value="credit">Có</option></select>
-    <input class="line-amount" type="number" min="0.01" step="0.01" placeholder="Số tiền" required>
-    <button type="button" title="Xóa dòng">×</button>
-  `;
-
-  row.querySelector("button").addEventListener("click",()=>{
-    row.remove();
-    updateBalancePreview();
-  });
-  row.querySelectorAll("input,select").forEach(el=>
-    el.addEventListener("input",updateBalancePreview)
-  );
-  $("voucherLines").appendChild(row);
-}
-
-function openVoucherModal() {
-  if (!accounts.length) {
-    return toast("Doanh nghiệp chưa có danh mục tài khoản.");
-  }
-
-  $("voucherForm").reset();
-  $("voucherLines").innerHTML = "";
-  $("voucherMessage").textContent = "";
-  $("voucherDate").value = new Date().toISOString().slice(0,10);
-  addVoucherLine();
-  addVoucherLine();
-  updateBalancePreview();
-  $("voucherModal").classList.add("open");
-}
-
-function closeVoucherModal() {
-  $("voucherModal").classList.remove("open");
-}
-
-$("closeVoucherModal").addEventListener("click",closeVoucherModal);
-$("cancelVoucher").addEventListener("click",closeVoucherModal);
-$("addLineButton").addEventListener("click",addVoucherLine);
-
-$("voucherModal").addEventListener("click",event=>{
-  if (event.target === $("voucherModal")) closeVoucherModal();
-});
-
-function readVoucherLines() {
-  return Array.from(document.querySelectorAll(".line-row")).map((row,index)=>{
-    const account_id = row.querySelector(".line-account").value;
-    const side = row.querySelector(".line-side").value;
-    const amount = Number(row.querySelector(".line-amount").value);
-
-    return {
-      company_id:activeCompany.id,
-      account_id,
-      line_no:index+1,
-      description:null,
-      debit:side==="debit"?amount:0,
-      credit:side==="credit"?amount:0
-    };
-  });
-}
-
-function updateBalancePreview() {
-  const rows = readVoucherLines();
-  const debit = rows.reduce((s,r)=>s+Number(r.debit||0),0);
-  const credit = rows.reduce((s,r)=>s+Number(r.credit||0),0);
-  const balanced = debit>0 && debit===credit;
-
-  $("balancePreview").textContent =
-    `Tổng Nợ: ${money(debit)} · Tổng Có: ${money(credit)} · ` +
-    (balanced?"Đang cân bằng":"Chưa cân bằng");
-
-  $("balancePreview").style.color = balanced ? "var(--green)" : "var(--red)";
-}
-
-async function saveVoucher(event) {
-  event.preventDefault();
-
-  const message = $("voucherMessage");
-  const button = $("saveVoucherButton");
-  message.textContent = "";
-
-  if (!activeCompany) return;
-
-  const date = $("voucherDate").value;
-  const description = $("voucherDescription").value.trim();
-  const lines = readVoucherLines();
-
-  if (!date || !description) {
-    message.textContent = "Nhập ngày chứng từ và diễn giải.";
-    return;
-  }
-
-  if (lines.length<2 || lines.some(l=>!l.account_id || !Number.isFinite(l.debit+l.credit) || (l.debit+l.credit)<=0)) {
-    message.textContent = "Cần ít nhất hai dòng định khoản hợp lệ.";
-    return;
-  }
-
-  const debit = lines.reduce((s,l)=>s+l.debit,0);
-  const credit = lines.reduce((s,l)=>s+l.credit,0);
-
-  if ($("postImmediately").checked && (debit<=0 || debit!==credit)) {
-    message.textContent = "Không thể ghi sổ: tổng Nợ phải bằng tổng Có.";
-    return;
-  }
-
-  const year = Number(date.slice(0,4));
-  const month = Number(date.slice(5,7));
-
-  let period = periods.find(p=>
-    p.fiscal_year===year && p.period_number===month
-  );
-
-  if (!period) {
-    try {
-      await ensurePeriodsForDate(year);
-      await loadMasterData();
-      period = periods.find(p=>p.fiscal_year===year && p.period_number===month);
-    } catch(error) {
-      message.textContent = error.message;
-      return;
-    }
-  }
-
-  if (!period || period.status!=="open") {
-    message.textContent = "Không tìm thấy kỳ kế toán đang mở cho ngày chứng từ.";
-    return;
-  }
-
-  button.disabled = true;
-  button.textContent = "Saving...";
-
-  let voucher = null;
-
-  try {
-    const random = crypto.randomUUID().slice(0,6).toUpperCase();
-    const voucherNo = `FN-${date.replaceAll("-","")}-${random}`;
-
-    const {data,error} = await db
-      .from("fnv_vouchers")
-      .insert({
-        company_id:activeCompany.id,
-        period_id:period.id,
-        voucher_no:voucherNo,
-        voucher_type:$("voucherType").value,
-        voucher_date:date,
-        description,
-        counterparty_name:$("voucherCounterparty").value.trim() || null,
-        created_by:session.user.id,
-        status:"draft"
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-    voucher = data;
-
-    const lineRows = lines.map(l=>({
-      ...l,
-      voucher_id:voucher.id
-    }));
-
-    const {error:lineError} = await db
-      .from("fnv_voucher_lines")
-      .insert(lineRows);
-
-    if (lineError) {
-      await db.from("fnv_vouchers").delete().eq("id",voucher.id);
-      throw lineError;
-    }
-
-    if ($("postImmediately").checked) {
-      const {error:postError} = await db
-        .from("fnv_vouchers")
-        .update({status:"posted"})
-        .eq("id",voucher.id)
-        .eq("status","draft");
-
-      if (postError) {
-        throw new Error(
-          "Đã lưu chứng từ nháp, nhưng chưa ghi sổ được: " + postError.message
-        );
-      }
-    }
-
-    closeVoucherModal();
-    toast($("postImmediately").checked ? "Đã ghi sổ chứng từ." : "Đã lưu chứng từ nháp.");
-    await loadMasterData();
-    navigate("Chứng từ & Sổ sách");
-
-  } catch(error) {
-    message.textContent = error.message || "Không lưu được chứng từ.";
-  } finally {
-    button.disabled = false;
-    button.textContent = "Lưu chứng từ";
-  }
-}
-
-async function ensurePeriodsForDate(year) {
-  const role = companyMemberships.find(m=>m.company_id===activeCompany.id)?.role;
-  if (!["owner","admin"].includes(role)) {
-    throw new Error("Chỉ owner hoặc admin được khởi tạo kỳ kế toán mới.");
-  }
-
-  const {error} = await db
-    .from("fnv_accounting_periods")
-    .upsert(monthPeriods(activeCompany.id,year),{
-      onConflict:"company_id,fiscal_year,period_number",
-      ignoreDuplicates:true
-    });
-
-  if (error) throw error;
-}
-
-$("voucherForm").addEventListener("submit",saveVoucher);
-
-async function initializeForActiveCompany() {
-  try {
-    await initializeCompany(activeCompany.id,new Date().getFullYear());
-    await loadMasterData();
-    toast("Đã khởi tạo danh mục mẫu.");
-    navigate("Dashboard");
-  } catch(error) {
-    toast(error.message);
-  }
-}
-
-/* ---------- SETTINGS / MODULES ---------- */
-function renderSettings() {
-  const role = companyMemberships.find(m=>m.company_id===activeCompany.id)?.role || "viewer";
-
-  $("pageContent").innerHTML = `
-    <div class="page-head">
-      <div><h1>Thiết lập hệ thống</h1><p>Cấu hình doanh nghiệp và thông tin hệ thống.</p></div>
-    </div>
-    <div class="card">
-      <div class="card-title">Company profile</div>
-      <div class="card-sub">Thông tin doanh nghiệp lấy từ PostgreSQL.</div>
-      <table style="margin-top:12px">
-       <tbody>
-        <tr><th>Tên doanh nghiệp</th><td>${esc(activeCompany.legal_name)}</td></tr>
-        <tr><th>Mã số thuế</th><td>${esc(activeCompany.tax_code||"Chưa cập nhật")}</td></tr>
-        <tr><th>Chế độ dự kiến</th><td>${esc(activeCompany.accounting_regime)}</td></tr>
-        <tr><th>Tiền tệ</th><td>${esc(activeCompany.currency_code)}</td></tr>
-        <tr><th>Quyền hiện tại</th><td><strong>${esc(role)}</strong></td></tr>
-       </tbody>
-      </table>
-    </div>
-    <div class="card" style="margin-top:14px">
-      <div class="card-title">Chart of Accounts</div>
-      <div class="card-sub">Danh mục mẫu hiện tại · ${accounts.length} tài khoản</div>
-      <div class="table-wrap" style="margin-top:12px">
-       <table>
-        <thead><tr><th>MÃ</th><th>TÊN TÀI KHOẢN</th><th>PHÂN LOẠI</th><th>BÊN DƯ THÔNG THƯỜNG</th></tr></thead>
-        <tbody>${accounts.map(a=>`
-         <tr><td>${esc(a.code)}</td><td>${esc(a.name)}</td><td>${esc(a.account_class)}</td><td>${esc(a.normal_side)}</td></tr>
-        `).join("")}</tbody>
-       </table>
-      </div>
-      <div class="notice" style="margin-top:13px">
-       Danh mục này là dữ liệu khởi tạo tham khảo. Phải rà soát theo chế độ kế toán, loại hình và ngành nghề của doanh nghiệp trước khi đưa vào sử dụng.
-      </div>
-    </div>
-  `;
-}
-
-const moduleDescriptions = {
- "Data Center":"Tiếp nhận file, kiểm tra dữ liệu đầu vào và quy trình xử lý chứng từ.",
- "Mua hàng & Bán hàng":"Quản lý nhà cung cấp, khách hàng, hóa đơn, phải thu và phải trả.",
- "Tiền & Ngân hàng":"Quản lý quỹ tiền mặt, tài khoản ngân hàng và đối chiếu.",
- "Kho & Giá thành":"Quản lý nhập xuất tồn, phương pháp tính giá và tập hợp chi phí.",
- "Tài sản & Phân bổ":"Quản lý tài sản cố định, khấu hao và công cụ dụng cụ.",
- "Tiền lương":"Quản lý lương, khoản phải trả và phân bổ chi phí.",
- "Thuế & Hóa đơn":"Quản lý hóa đơn, nghĩa vụ thuế và dữ liệu kê khai.",
- "Đối chiếu & Khóa sổ":"Kiểm tra đối chiếu và kiểm soát quy trình khóa sổ.",
- "Báo cáo tài chính":"Báo cáo tài chính theo chế độ kế toán đã xác nhận.",
- "Kiểm toán & Kiểm soát":"Kiểm soát nội bộ, lịch sử thay đổi và dấu vết kiểm toán.",
- "Legal Library":"Thư viện văn bản pháp luật và phạm vi áp dụng.",
- "Rules Engine":"Quản lý quy tắc định khoản theo chế độ và thời điểm hiệu lực.",
- "FINOVA AI":"Trợ lý hỗ trợ tra cứu và phân tích dữ liệu tài chính."
+const MODULE_INFO = {
+"general-ledger":["Sổ kế toán","Tập hợp và tra cứu bút toán từ chứng từ đã ghi sổ."],
+"sales":["Bán hàng & phải thu","Quản lý khách hàng, đơn bán, hóa đơn và công nợ phải thu."],
+"purchases":["Mua hàng & phải trả","Quản lý nhà cung cấp, đơn mua, hóa đơn và công nợ phải trả."],
+"cash-bank":["Tiền & ngân hàng","Quản lý quỹ tiền mặt, tài khoản ngân hàng và đối chiếu."],
+"inventory":["Kho hàng","Theo dõi vật tư, hàng hóa, phiếu nhập, phiếu xuất và tồn kho."],
+"costing":["Giá thành","Tập hợp chi phí trực tiếp, chi phí chung và tính giá thành."],
+"assets":["Tài sản & CCDC","Quản lý vòng đời tài sản, khấu hao và phân bổ."],
+"payroll":["Tiền lương","Quản lý bảng lương, các khoản trích theo lương và bút toán."],
+"tax":["Thuế & hóa đơn","Theo dõi nghĩa vụ thuế và dữ liệu hóa đơn."],
+"reports":["Báo cáo tài chính","Bảng cân đối kế toán, kết quả kinh doanh, lưu chuyển tiền tệ."],
+"closing":["Đối chiếu & khóa sổ","Checklist khóa sổ, bút toán điều chỉnh và kiểm tra số dư."],
+"budget":["Ngân sách & dự báo","Kế hoạch ngân sách và phân tích chênh lệch."],
+"approvals":["Phê duyệt","Hàng đợi chứng từ và nghiệp vụ chờ duyệt."],
+"controls":["Kiểm soát nội bộ","Quy tắc kiểm soát, phân nhiệm và cảnh báo."],
+"audit":["Kiểm toán","Kế hoạch, chương trình, hồ sơ và phát hiện kiểm toán."],
+"risk":["Quản lý rủi ro","Đánh giá xác suất, tác động và kế hoạch ứng phó."],
+"audit-log":["Nhật ký hệ thống","Dấu vết hoạt động phục vụ truy vết và kiểm tra."],
+"legal":["Thư viện pháp luật","Tra cứu văn bản pháp luật kế toán, thuế và doanh nghiệp."],
+"ai":["FINOVA AI","Trợ lý phân tích dữ liệu và hỗ trợ nghiệp vụ có kiểm soát."],
+"users":["Người dùng & phân quyền","Quản lý thành viên và vai trò trong doanh nghiệp."],
+"settings":["Thiết lập doanh nghiệp","Thông tin pháp lý, chế độ kế toán, tiền tệ và năm tài chính."]
 };
-
-function renderComingSoon(page) {
-  $("pageContent").innerHTML = `
-    <div class="page-head">
-      <div><h1>${esc(page)}</h1><p>${esc(moduleDescriptions[page]||"Không gian nghiệp vụ FINOVA.")}</p></div>
-    </div>
-    <div class="card">
-      <div class="card-title">Module chưa được triển khai trong Core V1</div>
-      <p class="card-sub" style="line-height:1.8">
-       Module này hiện mới có trong cấu trúc điều hướng. Chưa có bảng dữ liệu,
-       quy trình nghiệp vụ, kiểm soát quyền và logic kế toán để sử dụng thật.
-       Không nhập dữ liệu thực tế vào module này ở phiên bản hiện tại.
-      </p>
-    </div>
-  `;
+let currentUser=null,companies=[],activeCompany=null,periods=[],accounts=[],dashboardChart=null,currentPage="dashboard";
+const $=id=>document.getElementById(id);
+function toast(msg){$("toast").textContent=msg;$("toast").classList.remove("hidden");setTimeout(()=>$("toast").classList.add("hidden"),3500)}
+function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function money(v){return new Intl.NumberFormat("vi-VN",{style:"currency",currency:activeCompany?.currency_code||"VND",maximumFractionDigits:0}).format(Number(v)||0)}
+function dateLocal(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
+function allItems(){return MODULES.flatMap(g=>g.items)}
+function moduleName(id){return allItems().find(x=>x[0]===id)?.[2]||"FINOVA"}
+function renderNav(){const nav=$("nav");nav.innerHTML=MODULES.map(g=>`<div class="nav-group">${g.group}</div>${g.items.map(x=>`<button data-page="${x[0]}" class="${currentPage===x[0]?"active":""}"><span class="ico">${x[1]}</span>${x[2]}</button>`).join("")}`).join("");nav.querySelectorAll("[data-page]").forEach(b=>b.onclick=()=>navigate(b.dataset.page))}
+function navigate(id){currentPage=id;renderNav();$("topTitle").textContent=moduleName(id);$("sidebar").classList.remove("open");if(id==="dashboard")renderDashboard();else if(id==="vouchers")renderVouchers();else if(id==="accounts")renderAccounts();else if(id==="settings")renderSettings();else renderModule(id)}
+function showLogin(){ $("loginView").classList.remove("hidden");$("app").classList.add("hidden")}
+function showApp(){ $("loginView").classList.add("hidden");$("app").classList.remove("hidden");$("userEmail").textContent=currentUser?.email||"";$("avatar").textContent=(currentUser?.email||"F").slice(0,1).toUpperCase();$("todayText").textContent=new Intl.DateTimeFormat("vi-VN",{dateStyle:"full"}).format(new Date())}
+async function init(){if(!db||SUPABASE_URL.includes("YOUR_PROJECT")){$("loginError").textContent="Bạn cần điền SUPABASE_URL và SUPABASE_PUBLISHABLE_OR_ANON_KEY của project hiện tại trong phần cấu hình index.html.";return}
+ const {data:{session}}=await db.auth.getSession();if(session){currentUser=session.user;await boot()}else showLogin();
+ db.auth.onAuthStateChange(async(_event,session)=>{if(session&&!currentUser){currentUser=session.user;await boot()}else if(!session){currentUser=null;showLogin()}})
 }
-
-function renderError(message) {
-  $("pageContent").innerHTML = `
-   <div class="card">
-    <div class="card-title" style="color:var(--red)">Không tải được dữ liệu</div>
-    <p class="card-sub">${esc(message)}</p>
-    <button class="btn" onclick="loadUserCompanies()">Thử lại</button>
-   </div>`;
+async function boot(){showApp();renderNav();await loadCompanies();if(activeCompany){await loadCoreData();navigate(currentPage)}else renderNoCompany()}
+async function loadCompanies(){
+ const {data:members,error}=await db.from("fnv_company_members").select("company_id,role").eq("user_id",currentUser.id);
+ if(error){toast("Không tải được danh sách doanh nghiệp: "+error.message);companies=[]}
+ else if(members?.length){const ids=members.map(x=>x.company_id);const res=await db.from("fnv_companies").select("*").in("id",ids);if(res.error)toast(res.error.message);companies=res.data||[]}
+ // Owner created_by fallback helps explain missing membership; RLS must still authorize SELECT.
+ if(!companies.length){const res=await db.from("fnv_companies").select("*").eq("created_by",currentUser.id);if(!res.error)companies=res.data||[]}
+ const saved=sessionStorage.getItem("finova_active_company");activeCompany=companies.find(c=>c.id===saved)||companies[0]||null;
+ $("companySelect").innerHTML=companies.map(c=>`<option value="${c.id}">${esc(c.legal_name)}</option>`).join("")+`<option value="__create">＋ Tạo doanh nghiệp</option>`;
+ if(activeCompany)$("companySelect").value=activeCompany.id;
 }
-
-/* ---------- START ---------- */
-restoreSession();
+async function loadCoreData(){if(!activeCompany)return;
+ const [p,a]=await Promise.all([
+  db.from("fnv_accounting_periods").select("*").eq("company_id",activeCompany.id).order("fiscal_year",{ascending:false}).order("period_number"),
+  db.from("fnv_accounts").select("*").eq("company_id",activeCompany.id).order("code")
+ ]);
+ if(!p.error)periods=p.data||[];else toast("Lỗi tải kỳ kế toán: "+p.error.message);
+ if(!a.error)accounts=a.data||[];else toast("Lỗi tải tài khoản: "+a.error.message);
+}
+function renderNoCompany(){$("pageContent").innerHTML=`<div class="panel" style="max-width:650px;margin:50px auto;text-align:center;padding:35px"><div style="font-size:35px">▦</div><h2>Chào mừng đến FINOVA</h2><p class="sub">Tài khoản hiện chưa có doanh nghiệp nào được liên kết.</p><button class="btn" id="createFirstCompany">＋ Tạo doanh nghiệp</button><div class="notice">Nếu bạn đã tạo doanh nghiệp nhưng không thấy ở đây, cần kiểm tra membership và RLS. Không nên khắc phục bằng cách tắt RLS.</div></div>`;$("createFirstCompany").onclick=()=>$("companyModal").classList.remove("hidden")}
+async function renderDashboard(){
+ if(!activeCompany){renderNoCompany();return}
+ const [vRes,linesRes]=await Promise.all([
+  db.from("fnv_vouchers").select("id,voucher_no,voucher_date,description,status,period_id").eq("company_id",activeCompany.id).order("voucher_date",{ascending:false}).limit(8),
+  db.from("fnv_voucher_lines").select("debit,credit,account_id,voucher_id").eq("company_id",activeCompany.id)
+ ]);
+ const vouchers=vRes.data||[],lines=linesRes.data||[];
+ const postedIds=new Set(vouchers.filter(v=>v.status==="posted").map(v=>v.id));
+ // Dashboard summary is calculated from loaded rows only; do not present it as statutory financial statements.
+ const postedLines=lines.filter(l=>postedIds.has(l.voucher_id));
+ const debit=postedLines.reduce((s,l)=>s+Number(l.debit||0),0),credit=postedLines.reduce((s,l)=>s+Number(l.credit||0),0);
+ const draft=vouchers.filter(v=>v.status==="draft").length;
+ $("pageContent").innerHTML=`
+ <div class="page-head"><div><h1>Tổng quan tài chính</h1><p>${esc(activeCompany.legal_name)} · Trung tâm điều hành tài chính và kế toán</p></div><div class="head-actions"><button class="btn secondary" id="refreshDash">↻ Làm mới</button><button class="btn" id="newVoucher">＋ Chứng từ mới</button></div></div>
+ <div class="grid kpis">
+  <div class="panel"><div class="kpi-label">TỔNG PHÁT SINH NỢ ĐÃ GHI SỔ</div><div class="kpi-value">${money(debit)}</div><div class="kpi-foot">Từ các dòng chứng từ đã tải</div></div>
+  <div class="panel"><div class="kpi-label">TỔNG PHÁT SINH CÓ ĐÃ GHI SỔ</div><div class="kpi-value">${money(credit)}</div><div class="kpi-foot">Từ các dòng chứng từ đã tải</div></div>
+  <div class="panel"><div class="kpi-label">CHỨNG TỪ NHÁP</div><div class="kpi-value">${draft}</div><div class="kpi-foot">Trong danh sách chứng từ gần đây</div></div>
+  <div class="panel"><div class="kpi-label">TÀI KHOẢN KẾ TOÁN</div><div class="kpi-value">${accounts.length}</div><div class="kpi-foot">Danh mục tài khoản doanh nghiệp</div></div>
+ </div>
+ <div class="grid dash-grid">
+  <div class="panel"><div class="panel-title"><h3>Phát sinh Nợ và Có</h3><span>Chứng từ đã ghi sổ được tải</span></div><div class="chart-wrap"><canvas id="movementChart"></canvas></div></div>
+  <div class="panel"><div class="panel-title"><h3>Kiểm tra nhanh</h3><span>Thông tin hệ thống</span></div>
+   <div style="display:grid;gap:13px">
+    <div><div class="kpi-label">CHẾ ĐỘ KẾ TOÁN</div><b>${esc(activeCompany.accounting_regime||"Chưa xác định")}</b></div>
+    <div><div class="kpi-label">ĐỒNG TIỀN</div><b>${esc(activeCompany.currency_code||"VND")}</b></div>
+    <div><div class="kpi-label">KỲ KẾ TOÁN ĐÃ TẠO</div><b>${periods.length}</b></div>
+    <div><div class="kpi-label">CHÊNH LỆCH PHÁT SINH NỢ/CÓ</div><b class="${Math.abs(debit-credit)<0.005?"positive":"negative"}">${money(debit-credit)}</b></div>
+    <div class="notice">Số liệu này là tổng hợp từ dữ liệu đã tải, chưa thay thế sổ kế toán chính thức hoặc báo cáo tài chính. Cần xây dựng truy vấn tổng hợp phía database cho dữ liệu lớn.</div>
+   </div>
+  </div>
+ </div>
+ <div class="panel" style="margin-top:15px"><div class="panel-title"><h3>Chứng từ gần đây</h3><button class="btn secondary" id="viewAllVouchers">Xem tất cả</button></div><div class="table-wrap">${voucherTable(vouchers)}</div></div>
+ <div class="grid quick-grid">
+  <button class="quick" data-go="vouchers"><span class="ico">▤</span><b>Chứng từ kế toán</b><small>Tạo và theo dõi chứng từ</small></button>
+  <button class="quick" data-go="accounts"><span class="ico">⊞</span><b>Hệ thống tài khoản</b><small>Danh mục tài khoản</small></button>
+  <button class="quick" data-go="general-ledger"><span class="ico">▥</span><b>Sổ kế toán</b><small>Nhật ký và sổ cái</small></button>
+  <button class="quick" data-go="closing"><span class="ico">◷</span><b>Khóa sổ</b><small>Đối chiếu cuối kỳ</small></button>
+ </div>`;
+ $("refreshDash").onclick=async()=>{await loadCoreData();renderDashboard()};$("newVoucher").onclick=openVoucherModal;$("viewAllVouchers").onclick=()=>navigate("vouchers");document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>navigate(b.dataset.go));
+ if(vRes.error)toast("Không tải được chứng từ: "+vRes.error.message);if(linesRes.error)toast("Không tải được bút toán: "+linesRes.error.message);
+ const ctx=$("movementChart");if(dashboardChart)dashboardChart.destroy();dashboardChart=new Chart(ctx,{type:"bar",data:{labels:["Nợ","Có"],datasets:[{label:"Giá trị",data:[debit,credit],borderRadius:8}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:v=>new Intl.NumberFormat("vi-VN",{notation:"compact"}).format(v)}}}}});
+}
+function voucherTable(rows){if(!rows?.length)return `<div class="empty">Chưa có chứng từ hoặc bạn chưa được cấp quyền xem dữ liệu.</div>`;return `<table><thead><tr><th>Số chứng từ</th><th>Ngày</th><th>Nội dung</th><th>Trạng thái</th></tr></thead><tbody>${rows.map(v=>`<tr><td><b>${esc(v.voucher_no)}</b></td><td>${esc(v.voucher_date)}</td><td>${esc(v.description)}</td><td><span class="status ${v.status==="posted"?"ok":"warn"}">${v.status==="posted"?"Đã ghi sổ":"Nháp"}</span></td></tr>`).join("")}</tbody></table>`}
+async function renderVouchers(){const res=await db.from("fnv_vouchers").select("*").eq("company_id",activeCompany.id).order("voucher_date",{ascending:false}).limit(200);const rows=res.data||[];$("pageContent").innerHTML=`<div class="page-head"><div><h1>Chứng từ kế toán</h1><p>Quản lý chứng từ theo doanh nghiệp và kỳ kế toán.</p></div><button class="btn" id="newVoucher">＋ Tạo chứng từ</button></div><div class="toolbar"><input id="voucherSearch" placeholder="Tìm số chứng từ hoặc nội dung..."><select id="voucherStatus"><option value="">Tất cả trạng thái</option><option value="draft">Nháp</option><option value="posted">Đã ghi sổ</option></select></div><div class="table-wrap" id="voucherTable">${voucherTable(rows)}</div>`;if(res.error)toast(res.error.message);$("newVoucher").onclick=openVoucherModal;const filter=()=>{const q=$("voucherSearch").value.toLowerCase(),s=$("voucherStatus").value;const filtered=rows.filter(v=>(!s||v.status===s)&&(`${v.voucher_no||""} ${v.description||""}`).toLowerCase().includes(q));$("voucherTable").innerHTML=voucherTable(filtered)};$("voucherSearch").oninput=filter;$("voucherStatus").onchange=filter}
+function renderAccounts(){const rows=accounts;$("pageContent").innerHTML=`<div class="page-head"><div><h1>Hệ thống tài khoản</h1><p>Danh mục tài khoản theo doanh nghiệp đang chọn.</p></div></div><div class="toolbar"><input id="accountSearch" placeholder="Tìm mã hoặc tên tài khoản..."></div><div class="table-wrap" id="accountTable">${accountTable(rows)}</div>`;$("accountSearch").oninput=()=>{const q=$("accountSearch").value.toLowerCase();$("accountTable").innerHTML=accountTable(rows.filter(a=>(a.code+" "+a.name).toLowerCase().includes(q)))}}
+function accountTable(rows){if(!rows.length)return `<div class="empty">Chưa có tài khoản kế toán. Hãy kiểm tra khởi tạo danh mục tài khoản.</div>`;return `<table><thead><tr><th>Mã tài khoản</th><th>Tên tài khoản</th><th>Loại</th><th>Tính chất</th><th>Trạng thái</th></tr></thead><tbody>${rows.map(a=>`<tr><td><b>${esc(a.code)}</b></td><td>${esc(a.name)}</td><td>${esc(a.account_class)}</td><td>${esc(a.normal_side)}</td><td><span class="status ${a.is_active?"ok":"bad"}">${a.is_active?"Đang dùng":"Ngừng dùng"}</span></td></tr>`).join("")}</tbody></table>`}
+function renderSettings(){$("pageContent").innerHTML=`<div class="page-head"><div><h1>Thiết lập doanh nghiệp</h1><p>Thông tin cấu hình của đơn vị đang làm việc.</p></div></div><div class="panel" style="max-width:760px"><div class="form-grid"><div class="field span2"><label>Tên pháp lý</label><input value="${esc(activeCompany.legal_name)}" disabled></div><div class="field"><label>Mã số thuế</label><input value="${esc(activeCompany.tax_code||"")}" disabled></div><div class="field"><label>Chế độ kế toán</label><input value="${esc(activeCompany.accounting_regime)}" disabled></div><div class="field"><label>Đồng tiền</label><input value="${esc(activeCompany.currency_code)}" disabled></div><div class="field"><label>Tháng bắt đầu năm tài chính</label><input value="${esc(activeCompany.fiscal_year_start)}" disabled></div></div><div class="notice">Chỉnh sửa thông tin doanh nghiệp sẽ được mở khi hoàn thiện workflow quyền Owner/Admin và audit log ở database.</div></div><div class="panel" style="margin-top:15px"><div class="panel-title"><h3>Kỳ kế toán</h3><span>${periods.length} kỳ</span></div><div class="table-wrap">${periodTable(periods)}</div></div>`}
+function periodTable(rows){if(!rows.length)return `<div class="empty">Chưa có kỳ kế toán.</div>`;return `<table><thead><tr><th>Năm tài chính</th><th>Kỳ</th><th>Từ ngày</th><th>Đến ngày</th><th>Trạng thái</th></tr></thead><tbody>${rows.map(p=>`<tr><td>${p.fiscal_year}</td><td>${p.period_number}</td><td>${p.starts_on}</td><td>${p.ends_on}</td><td><span class="status ${p.status==="open"?"ok":"warn"}">${esc(p.status)}</span></td></tr>`).join("")}</tbody></table>`}
+function renderModule(id){const [title,desc]=MODULE_INFO[id]||["Phân hệ",""];const specs={"general-ledger":"Sổ nhật ký chung · Sổ cái · Sổ chi tiết · Bảng cân đối số phát sinh","sales":"Khách hàng · Đơn bán · Giao hàng · Hóa đơn · Công nợ phải thu","purchases":"Nhà cung cấp · Đơn mua · Nhận hàng · Hóa đơn đầu vào · Công nợ phải trả","cash-bank":"Phiếu thu · Phiếu chi · Báo nợ · Báo có · Đối chiếu ngân hàng","inventory":"Danh mục hàng hóa · Phiếu nhập · Phiếu xuất · Tồn kho · Kiểm kê","costing":"Đối tượng tập hợp chi phí · Phân bổ · Giá thành","assets":"Ghi tăng · Điều chuyển · Khấu hao · Thanh lý · Công cụ dụng cụ","payroll":"Nhân viên · Bảng công · Bảng lương · BHXH · Thuế TNCN","tax":"Thuế GTGT · Thuế TNDN · Thuế TNCN · Hóa đơn điện tử · Lịch kê khai","reports":"Bảng cân đối kế toán · Kết quả kinh doanh · Lưu chuyển tiền tệ · Thuyết minh","closing":"Đối chiếu công nợ · Kiểm tra cân đối · Phân bổ · Kết chuyển · Khóa kỳ","budget":"Kế hoạch ngân sách · Dự báo dòng tiền · Phân tích chênh lệch","approvals":"Hàng đợi phê duyệt · Quy trình nhiều cấp · Lịch sử quyết định","controls":"Phân quyền · Phân nhiệm · Quy tắc kiểm tra · Cảnh báo","audit":"Kế hoạch kiểm toán · Chương trình kiểm toán · Hồ sơ · Bằng chứng · Phát hiện","risk":"Danh mục rủi ro · Ma trận đánh giá · Kế hoạch ứng phó","audit-log":"Nhật ký đăng nhập · Thay đổi dữ liệu · Ghi sổ · Phê duyệt","legal":"Văn bản pháp luật · Hiệu lực · Lịch sử sửa đổi · Phạm vi áp dụng","ai":"Hỏi đáp dữ liệu · Hỗ trợ định khoản · Phân tích bất thường · Trợ lý thuế","users":"Thành viên · Vai trò · Phạm vi dữ liệu · Lịch sử cấp quyền"};$("pageContent").innerHTML=`<div class="page-head"><div><h1>${title}</h1><p>${desc}</p></div></div><div class="panel"><div class="panel-title"><h3>Không gian nghiệp vụ</h3><span class="status warn">Đang chờ tích hợp database</span></div><p class="sub">Phân hệ đã được bố trí trong kiến trúc FINOVA Enterprise. Để vận hành nghiệp vụ thật, cần bổ sung bảng dữ liệu, quy tắc hạch toán, kiểm soát quyền và workflow tương ứng.</p><div class="grid module-grid" style="margin-top:18px">${(specs[id]||"Danh mục · Quy trình · Báo cáo").split(" · ").map((s,i)=>`<div class="module-card"><div class="m-ico">${["▤","⊞","✓","◷","◎"][i%5]}</div><div><h3>${s}</h3><p>Thành phần nghiệp vụ của phân hệ ${title.toLowerCase()}.</p></div></div>`).join("")}</div><div class="notice">Chưa có thao tác ghi dữ liệu cho phân hệ này. FINOVA không hiển thị số liệu giả hoặc giả lập nghiệp vụ kế toán. Các module sẽ kết nối với PostgreSQL và Accounting Engine khi schema nghiệp vụ tương ứng được triển khai.</div></div>`}
+function openVoucherModal(){if(!activeCompany){toast("Hãy chọn doanh nghiệp trước.");return}$("voucherError").textContent="";$("voucherDate").value=dateLocal();$("voucherPeriod").innerHTML=periods.filter(p=>p.status==="open").map(p=>`<option value="${p.id}">${p.fiscal_year} · Kỳ ${p.period_number}</option>`).join("");$("voucherModal").classList.remove("hidden")}
+$("loginForm").addEventListener("submit",async e=>{e.preventDefault();$("loginError").textContent="";const {error}=await db.auth.signInWithPassword({email:$("loginEmail").value.trim(),password:$("loginPassword").value});if(error)$("loginError").textContent=error.message});
+$("forgotBtn").onclick=async()=>{const email=$("loginEmail").value.trim();if(!email){$("loginError").textContent="Nhập email trước khi yêu cầu đặt lại mật khẩu.";return}const {error}=await db.auth.resetPasswordForEmail(email);$("loginError").textContent=error?"Không gửi được email: "+error.message:"Đã gửi hướng dẫn đặt lại mật khẩu nếu email hợp lệ."};
+$("logoutBtn").onclick=()=>db.auth.signOut();
+$("companySelect").onchange=async e=>{if(e.target.value==="__create"){$("companyModal").classList.remove("hidden");e.target.value=activeCompany?.id||"";return}activeCompany=companies.find(c=>c.id===e.target.value)||null;if(activeCompany){sessionStorage.setItem("finova_active_company",activeCompany.id);await loadCoreData();navigate("dashboard")}};
+$("companyForm").addEventListener("submit",async e=>{e.preventDefault();$("companyError").textContent="";const payload={legal_name:$("companyName").value.trim(),tax_code:$("taxCode").value.trim()||null,accounting_regime:$("accountingRegime").value,currency_code:$("currencyCode").value,fiscal_year_start:Number($("fiscalStart").value),created_by:currentUser.id};const {data,error}=await db.from("fnv_companies").insert(payload).select("*").single();if(error){$("companyError").textContent=error.message;return}toast("Đã tạo doanh nghiệp. Đang tải quyền thành viên...");$("companyModal").classList.add("hidden");$("companyForm").reset();await loadCompanies();if(!companies.some(c=>c.id===data.id)){toast("Doanh nghiệp đã tạo nhưng chưa có membership/SELECT policy phù hợp. Cần xử lý database; không tự mở quyền.");return}activeCompany=data;sessionStorage.setItem("finova_active_company",data.id);await loadCoreData();navigate("dashboard")});
+$("voucherForm").addEventListener("submit",async e=>{e.preventDefault();$("voucherError").textContent="";if(!$("voucherPeriod").value){$("voucherError").textContent="Không có kỳ kế toán đang mở. Hãy tạo kỳ trước.";return}const payload={company_id:activeCompany.id,period_id:$("voucherPeriod").value,voucher_no:$("voucherNo").value.trim(),voucher_type:$("voucherType").value,voucher_date:$("voucherDate").value,description:$("voucherDescription").value.trim(),status:"draft",created_by:currentUser.id};const {error}=await db.from("fnv_vouchers").insert(payload);if(error){$("voucherError").textContent=error.message;return}$("voucherModal").classList.add("hidden");$("voucherForm").reset();toast("Đã tạo chứng từ nháp.");navigate("vouchers")});
+document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>$ (b.dataset.close).classList.add("hidden"));
+$("menuBtn").onclick=()=>$("sidebar").classList.toggle("open");
+init();
 </script>
 </body>
-</html>
+</html>'''
+path = Path("/mnt/data/index-finova-enterprise-v2.html")
+path.write_text(html, encoding="utf-8")
+print(f"Created {path} ({len(html):,} characters)")

@@ -418,7 +418,202 @@ tr:hover td {
     box-shadow: none !important;
   }
 }
-
+/* ============================================================
+   FINOVA × HR PORTAL — BLUE / WHITE DESIGN SYSTEM
+   Visual-only layer. Core HTML structure, JS, Supabase and RPCs
+   are intentionally preserved.
+============================================================ */
+:root{
+ --navy:#12366b;
+ --blue:#0071e3;
+ --blue2:#0066cc;
+ --light:#eaf3ff;
+ --bg:#f5f7fb;
+ --white:#ffffff;
+ --text:#1d2b3f;
+ --muted:#718096;
+ --line:rgba(25,55,95,.10);
+ --green:#249b58;
+ --red:#e34b4b;
+ --orange:#d98b22;
+ --side:260px;
+ --hr-accent:#0071e3;
+ --hr-accent-soft:rgba(0,113,227,.09);
+ --hr-glass:rgba(255,255,255,.88);
+ --hr-shadow:0 8px 28px rgba(25,55,95,.07);
+}
+html{scroll-behavior:smooth}
+body{
+ background:linear-gradient(145deg,#f7f9fd 0%,#f1f6fd 52%,#f7f9fc 100%);
+ color:var(--text);
+ font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Be Vietnam Pro",Inter,Arial,sans-serif;
+ letter-spacing:-.01em;
+}
+#app{background:transparent}
+.sidebar{
+ background:rgba(255,255,255,.92)!important;
+ border-right:1px solid rgba(25,55,95,.09)!important;
+ box-shadow:8px 0 28px rgba(30,64,110,.035);
+ backdrop-filter:blur(22px);
+ -webkit-backdrop-filter:blur(22px);
+}
+.side-brand{border-bottom:1px solid rgba(25,55,95,.08)!important}
+.brand{color:#17365f!important;letter-spacing:.04em}
+.brand-icon{
+ background:linear-gradient(135deg,#0071e3 0%,#3b91f5 58%,#5e5ce6 100%)!important;
+ border-radius:12px!important;
+ box-shadow:0 5px 14px rgba(0,113,227,.22);
+}
+.workspace{
+ background:linear-gradient(135deg,#f1f7ff,#f8fbff)!important;
+ border:1px solid #e2edfb!important;
+ border-radius:13px!important;
+}
+.workspace small,.nav-label{color:#8291a7!important;letter-spacing:.09em}
+.nav-item{
+ border:1px solid transparent!important;
+ border-radius:10px!important;
+ color:#52647d!important;
+ transition:background .18s ease,color .18s ease,border-color .18s ease,transform .18s ease;
+}
+.nav-item:hover{
+ background:#f0f6ff!important;
+ color:#006bd6!important;
+ border-color:#e1edfc!important;
+ transform:translateX(2px);
+}
+.nav-item.active{
+ color:#006bd6!important;
+ background:linear-gradient(90deg,#e8f2ff,#f3f8ff)!important;
+ border-color:#dceaff!important;
+ box-shadow:inset 3px 0 0 #0071e3;
+ font-weight:700!important;
+}
+.nav-icon{color:inherit!important}
+.side-user{border-top:1px solid rgba(25,55,95,.09)!important}
+.avatar{
+ background:linear-gradient(135deg,#0071e3,#5e5ce6)!important;
+ box-shadow:0 3px 10px rgba(0,113,227,.18);
+}
+.main{background:transparent!important}
+.topbar{
+ background:rgba(255,255,255,.86)!important;
+ border:1px solid rgba(25,55,95,.09)!important;
+ border-radius:17px!important;
+ box-shadow:0 5px 24px rgba(25,55,95,.07)!important;
+ backdrop-filter:blur(22px);
+ -webkit-backdrop-filter:blur(22px);
+}
+.top-title{color:#1b3558!important;font-weight:750!important}
+.crumb{color:#8a98aa!important}
+.top-btn{
+ border:1px solid #e7edf5!important;
+ background:#f7faff!important;
+ color:#526783!important;
+ border-radius:10px!important;
+}
+.top-btn:hover{background:#eaf3ff!important;color:#006bd6!important;border-color:#d8e8fc!important}
+.company-select{
+ background:#f7faff!important;
+ border:1px solid #e4ebf4!important;
+ border-radius:10px!important;
+ color:#315174!important;
+}
+.content{color:var(--text)}
+.card,.kpi,.panel,.table-wrap,.modal,.setup-card{
+ border-color:rgba(25,55,95,.09)!important;
+ box-shadow:0 3px 16px rgba(25,55,95,.045)!important;
+}
+.card,.kpi,.panel{
+ border-radius:15px!important;
+ background:rgba(255,255,255,.96)!important;
+}
+.card:hover,.kpi:hover{box-shadow:0 8px 24px rgba(25,55,95,.075)!important}
+.card-title,.page-title,.section-title{color:#1b3558!important}
+.card-sub,.muted{color:#7b8ba1!important}
+.btn,.field input,.field select,.field textarea,.search-input{
+ border-radius:9px!important;
+}
+.btn{
+ background:#fff!important;
+ border-color:#e3eaf3!important;
+ color:#536781!important;
+}
+.btn:hover{background:#f3f8ff!important;border-color:#cfe2fb!important;color:#006bd6!important}
+.btn-primary,.primary{
+ background:linear-gradient(135deg,#0071e3,#167be8)!important;
+ border-color:#0071e3!important;
+ color:#fff!important;
+ box-shadow:0 4px 12px rgba(0,113,227,.18);
+}
+.btn-primary:hover,.primary:hover{background:#0066cc!important}
+.field input,.field select,.field textarea{
+ background:#fff!important;
+ border-color:#e2eaf4!important;
+ color:#243b59!important;
+}
+.field input:focus,.field select:focus,.field textarea:focus{
+ border-color:#69a9f3!important;
+ box-shadow:0 0 0 3px rgba(0,113,227,.11)!important;
+}
+.table-wrap{
+ border:1px solid #e7edf5!important;
+ border-radius:13px!important;
+ background:#fff!important;
+ overflow:auto;
+}
+table{border-collapse:separate!important;border-spacing:0!important}
+thead th{
+ background:#edf5ff!important;
+ color:#365a86!important;
+ border-bottom:1px solid #dce9f8!important;
+ font-weight:750!important;
+}
+tbody td{border-bottom:1px solid #edf1f6!important;color:#435671}
+tbody tr:hover td{background:#f5f9ff!important}
+.badge,.status,.tag{border-radius:999px!important}
+.notice{
+ background:#f0f6ff!important;
+ border-color:#dceaff!important;
+ color:#365d91!important;
+ border-radius:11px!important;
+}
+.modal-backdrop{backdrop-filter:blur(5px);background:rgba(18,38,68,.34)!important}
+.modal{
+ border-radius:18px!important;
+ border:1px solid rgba(255,255,255,.75)!important;
+}
+.toast{
+ border-radius:12px!important;
+ box-shadow:0 8px 28px rgba(20,45,80,.16)!important;
+}
+#loginScreen{background:#f5f7fb!important}
+.login-visual{
+ background:
+  radial-gradient(ellipse at 15% 15%,rgba(10,132,255,.72),transparent 46%),
+  radial-gradient(ellipse at 88% 18%,rgba(94,92,230,.58),transparent 44%),
+  linear-gradient(140deg,#12366b 0%,#075dbb 52%,#0071e3 100%)!important;
+}
+.login-visual::before{
+ content:"";position:absolute;inset:0;pointer-events:none;
+ background-image:linear-gradient(rgba(255,255,255,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.055) 1px,transparent 1px);
+ background-size:34px 34px;
+ mask-image:linear-gradient(135deg,#000,transparent 82%);
+}
+.login-panel{background:linear-gradient(145deg,#fff,#f7faff)!important}
+.login-box{
+ border:1px solid #e9eff7!important;
+ border-radius:20px!important;
+ box-shadow:0 16px 48px rgba(25,55,95,.08)!important;
+}
+.login-box .brand-icon{box-shadow:0 5px 14px rgba(0,113,227,.22)}
+@media(max-width:900px){
+ .sidebar{box-shadow:12px 0 36px rgba(25,55,95,.12)!important}
+ .topbar{border-radius:13px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ *,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}
+}
 </style>
 </head>
 <body>

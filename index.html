@@ -60,6 +60,365 @@
  td,th{font-size:8pt!important;padding:5px!important}
 }
 
+/* ==========================================
+   FINOVA OCEAN BLUE & WHITE DESIGN SYSTEM
+   Version 4 - UI only
+========================================== */
+
+:root {
+  --navy: #103B66;
+  --blue: #168BD1;
+  --blue2: #0869AD;
+  --light: #EAF5FF;
+  --bg: #F4F8FC;
+  --white: #FFFFFF;
+  --text: #17324D;
+  --muted: #7890A6;
+  --line: #DCEAF4;
+  --green: #15966F;
+  --red: #D94F5C;
+  --orange: #D9902F;
+}
+
+/* GLOBAL */
+body {
+  background: #F4F8FC;
+  color: var(--text);
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+}
+
+#app {
+  background: #F4F8FC;
+}
+
+/* LOGIN SCREEN */
+#loginScreen {
+  background: #FFFFFF;
+  grid-template-columns: 1.1fr 0.9fr;
+}
+
+.login-visual {
+  background: linear-gradient(
+    145deg,
+    #EAF6FF 0%,
+    #D9EEFC 52%,
+    #F6FBFF 100%
+  );
+  color: #173D5D;
+}
+
+.login-visual:after {
+  border-color: #168BD126;
+  box-shadow:
+    0 0 0 65px #168BD10A,
+    0 0 0 130px #168BD106;
+}
+
+.login-visual .brand,
+.login-visual .login-copy h1 {
+  color: #103B66;
+}
+
+.login-visual .brand-icon {
+  background: linear-gradient(135deg, #103B66, #168BD1);
+  color: white;
+  border: 0;
+}
+
+.eyebrow {
+  color: #168BD1;
+}
+
+.login-copy p {
+  color: #52738D;
+}
+
+.login-foot {
+  color: #789BB5;
+}
+
+.login-panel {
+  background: #FFFFFF;
+}
+
+.login-box h2 {
+  color: #103B66;
+}
+
+.login-box .sub {
+  color: #7890A6;
+}
+
+/* SIDEBAR */
+.sidebar {
+  background: #FFFFFF;
+  border-right: 1px solid #DCEAF4;
+  box-shadow: 4px 0 20px #174B7408;
+}
+
+.side-brand,
+.workspace,
+.side-user {
+  border-color: #E3EDF5;
+}
+
+.nav-label {
+  color: #8AA2B5;
+}
+
+.nav-item {
+  color: #58758D;
+  border-radius: 10px;
+  transition: .2s ease;
+}
+
+.nav-item:hover {
+  background: #EFF8FE;
+  color: #168BD1;
+}
+
+.nav-item.active {
+  background: #E8F5FF;
+  color: #0869AD;
+  box-shadow: inset 3px 0 #168BD1;
+}
+
+.avatar {
+  background: #DFF1FD;
+  color: #1476B6;
+}
+
+/* TOP NAVIGATION */
+.topbar {
+  background: #FFFFFF;
+  border-bottom: 1px solid #DCEAF4;
+  box-shadow: 0 3px 15px #174B7408;
+}
+
+.top-title {
+  color: #103B66;
+}
+
+.crumb {
+  color: #7890A6;
+}
+
+.company-select,
+.top-btn {
+  border: 1px solid #DCEAF4;
+  background: #FFFFFF;
+  border-radius: 9px;
+}
+
+/* PAGE BACKGROUND */
+.main {
+  background: #F4F8FC;
+}
+
+.content {
+  background: transparent;
+}
+
+.page-head h1 {
+  color: #103B66;
+}
+
+.page-head p {
+  color: #7890A6;
+}
+
+/* CARDS */
+.card,
+.kpi {
+  background: #FFFFFF;
+  border: 1px solid #DFEBF3;
+  border-radius: 14px;
+  box-shadow: 0 5px 20px #245B7C08;
+  transition: box-shadow .2s ease, transform .2s ease;
+}
+
+.card:hover,
+.kpi:hover {
+  box-shadow: 0 9px 25px #245B7C12;
+}
+
+.card-title {
+  color: #17466A;
+}
+
+.card-sub {
+  color: #7890A6;
+}
+
+.kpi-value {
+  color: #103B66;
+}
+
+.kpi-label {
+  color: #7890A6;
+}
+
+.kpi-icon,
+.activity-icon {
+  background: #EAF5FF;
+  color: #168BD1;
+}
+
+/* BUTTONS */
+.btn {
+  border: 1px solid #DCEAF4;
+  border-radius: 9px;
+  background: #FFFFFF;
+  color: #42627D;
+  transition: .2s ease;
+}
+
+.btn:hover {
+  background: #EFF8FE;
+  border-color: #A9D5F0;
+}
+
+.btn-primary,
+.primary {
+  background: linear-gradient(135deg, #168BD1, #0869AD);
+  border-color: #168BD1;
+  color: #FFFFFF;
+  border-radius: 9px;
+  box-shadow: 0 5px 14px #168BD126;
+}
+
+.btn-primary:hover,
+.primary:hover {
+  background: #075D9C;
+}
+
+/* INPUTS */
+.field input,
+.field select,
+.field textarea,
+.company-select {
+  border: 1px solid #DCEAF4;
+  border-radius: 9px;
+  color: #17324D;
+  background: #FFFFFF;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color: #168BD1;
+  box-shadow: 0 0 0 3px #168BD11A;
+}
+
+/* TABLES */
+th {
+  color: #7890A6;
+  background: #F5FAFE;
+  border-bottom: 1px solid #DCEAF4;
+}
+
+td {
+  border-bottom-color: #EDF3F7;
+  color: #36546D;
+}
+
+tr:hover td {
+  background: #F5FAFE;
+}
+
+/* STATUS */
+.status.draft {
+  background: #EEF4F8;
+  color: #6D8496;
+}
+
+.status.posted {
+  background: #E8F8F2;
+  color: #16866D;
+}
+
+.status.void {
+  background: #FFF0F1;
+  color: #D14A56;
+}
+
+/* MODAL */
+.modal-backdrop {
+  background: #103B6659;
+  backdrop-filter: blur(4px);
+}
+
+.modal {
+  border: 1px solid #DCEAF4;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px #103B6630;
+}
+
+/* NOTIFICATIONS */
+.toast {
+  background: #103B66;
+  border-radius: 11px;
+}
+
+/* BCTC STUDIO */
+.bctc-file {
+  background: #F2F9FE;
+  border-color: #B8DDF2;
+  border-radius: 12px;
+}
+
+.bctc-step b {
+  background: #E2F3FD;
+  color: #1479B9;
+}
+
+/* MOBILE */
+@media(max-width:760px) {
+  #loginScreen {
+    grid-template-columns: 1fr;
+  }
+
+  .login-visual {
+    display: flex;
+    min-height: 230px;
+    padding: 25px;
+  }
+
+  .login-copy h1 {
+    font-size: 30px;
+  }
+
+  .login-panel {
+    min-height: auto;
+    padding: 35px 22px;
+  }
+
+  .sidebar {
+    box-shadow: 8px 0 30px #103B6620;
+  }
+
+  .topbar {
+    background: #FFFFFF;
+  }
+
+  .content {
+    padding: 18px 13px;
+  }
+}
+
+/* PRINT */
+@media print {
+  body,
+  .main {
+    background: #FFFFFF !important;
+  }
+
+  .card,
+  .kpi {
+    box-shadow: none !important;
+  }
+}
+
 </style>
 </head>
 <body>
